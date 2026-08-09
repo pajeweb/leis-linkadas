@@ -1,0 +1,67 @@
+name: Build Provimento 149 anchors
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-provimento-149.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Build HTML with anchors only
+        run: |
+          python -m pip install beautifulsoup4 requests
+          python <<'PY'
+          import re, requests
+          from bs4 import BeautifulSoup
+          from pathlib import Path
+          URL='https://atos.cnj.jus.br/atos/detalhar/5243'
+          out=Path('cnj/provimento-149-2023.html')
+          html=requests.get(URL,timeout=60,headers={'User-Agent':'Mozilla/5.0'}).text
+          soup=BeautifulSoup(html,'html.parser')
+          for s in soup(['script','style','noscript']): s.decompose()
+          def slug(s):
+              s=s.lower().replace('º','').replace('°','')
+              return re.sub(r'[^a-z0-9]+','-',s).strip('-')
+          article=None
+          tags=soup.find_all(['p','div','li','td','h1','h2','h3','h4','h5'])
+          for tag in tags:
+              txt=' '.join(tag.get_text(' ',strip=True).split())
+              if not txt: continue
+              m=re.match(r'^Art\.\s*(\d+(?:-[A-Z])?)\.?',txt,re.I)
+              if m:
+                  article=m.group(1)
+                  tag['id']=f'cnj-prov-149-2023-cnn-art-{slug(article)}'
+                  continue
+              if article:
+                  m=re.match(r'^§\s*(\d+(?:-[A-Z])?)\.?',txt,re.I)
+                  if m:
+                      tag['id']=f'cnj-prov-149-2023-cnn-art-{slug(article)}-par-{slug(m.group(1))}'
+                      continue
+                  m=re.match(r'^([IVXLCDM]+)\s*[—–-]\s+',txt)
+                  if m:
+                      tag['id']=f'cnj-prov-149-2023-cnn-art-{slug(article)}-inc-{m.group(1).lower()}'
+                      continue
+                  m=re.match(r'^([a-z])\)\s+',txt,re.I)
+                  if m:
+                      tag['id']=f'cnj-prov-149-2023-cnn-art-{slug(article)}-ali-{m.group(1).lower()}'
+                      continue
+          out.parent.mkdir(parents=True,exist_ok=True)
+          out.write_text(str(soup),encoding='utf-8')
+          PY
+      - name: Commit generated HTML
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add cnj/provimento-149-2023.html
+          git diff --cached --quiet || git commit -m 'Build Provimento 149 with anchors only'
+          git push
