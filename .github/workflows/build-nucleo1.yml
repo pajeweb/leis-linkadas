@@ -26,69 +26,117 @@ jobs:
           from pathlib import Path
           from bs4 import BeautifulSoup
 
-          manifest=json.loads(Path('normativos-manifest.json').read_text(encoding='utf-8'))
-          headers={'User-Agent':'Mozilla/5.0 (compatible; leis-linkadas/1.0)'}
+          manifest = json.loads(Path('normativos-manifest.json').read_text(encoding='utf-8'))
+          headers = {'User-Agent': 'Mozilla/5.0 (compatible; leis-linkadas/1.0)'}
 
           def norm(s):
-              return re.sub(r'\s+',' ',s.replace('\xa0',' ')).strip()
+              return re.sub(r'\s+', ' ', s.replace('\xa0', ' ')).strip()
 
           def slug(s):
-              s=s.lower().replace('º','').replace('°','')
-              s=s.replace('á','a').replace('à','a').replace('ã','a').replace('â','a').replace('é','e').replace('ê','e').replace('í','i').replace('ó','o').replace('ô','o').replace('õ','o').replace('ú','u').replace('ç','c')
-              return re.sub(r'[^a-z0-9]+','-',s).strip('-')
+              s = s.lower().replace('º', '').replace('°', '')
+              trans = str.maketrans('áàãâéêíóôõúç', 'aaaaeeiooouc')
+              s = s.translate(trans)
+              return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
 
           def anchor_doc(soup, prefix):
-              used=set()
-              tags=soup.find_all(['p','div','li','td','blockquote','h1','h2','h3','h4','h5'])
-              current=None
+              used = {t.get('id') for t in soup.find_all(True) if t.get('id')}
+              count = 0
+              current = None
+              tags = soup.find_all(['p','div','li','td','blockquote','h1','h2','h3','h4','h5'])
               for tag in tags:
-                  if tag.has_attr('id'):
-                      used.add(tag['id'])
-                  txt=norm(tag.get_text(' ',strip=True))
+                  txt = norm(tag.get_text(' ', strip=True))
                   if not txt:
                       continue
-                  m=re.match(r'^Art\\.\\s*(\\d+(?:[-–][A-Z])?)\\s*[º°.]?',txt,re.I)
-                  if m:
-                      art=m.group(1).replace('–','-').upper()
-                      aid=f'{prefix}-art-{slug(art)}'
-                      if aid not in used:
-                          tag['id']=aid; used.add(aid); current=art
-                      else:
-                          current=art
-                      continue
-                  if current:
-                      m=re.match(r'^§\\s*(\\d+(?:[-–][A-Z])?)\\s*[º°.]?',txt,re.I)
-                      if m:
-                          pid=f'{prefix}-art-{slug(current)}-par-{slug(m.group(1))}'
-                          if pid not in used:
-                              tag['id']=pid; used.add(pid)
-                          continue
-                      m=re.match(r'^([IVXLCDM]+)\\s*[—–-]\\s+',txt,re.I)
-                      if m:
-                          iid=f'{prefix}-art-{slug(current)}-inc-{m.group(1).lower()}'
-                          if iid not in used:
-                              tag['id']=iid; used.add(iid)
-                          continue
-                      m=re.match(r'^([a-z])\\)\\s+',txt,re.I)
-                      if m:
-                          lid=f'{prefix}-art-{slug(current)}-ali-{m.group(1).lower()}'
-                          if lid not in used:
-                              tag['id']=lid; used.add(lid)
-                          continue
-              return len([x for x in used if x.startswith(prefix+'-art-')])
 
+                  m = re.match(r'^Art\.?\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?', txt, re.I)
+                  if m:
+                      current = m.group(1).replace('–', '-').upper()
+                      aid = f'{prefix}-art-{slug(current)}'
+                      if aid not in used:
+                          tag['id'] = aid
+                          used.add(aid)
+                          count += 1
+                      continue
+
+                  if current is None:
+                      continue
+
+                  m = re.match(r'^§\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?', txt, re.I)
+                  if m:
+                      pid = f'{prefix}-art-{slug(current)}-par-{slug(m.group(1))}'
+                      if pid not in used:
+                          tag['id'] = pid
+                          used.add(pid)
+                          count += 1
+                      continue
+
+                  if re.match(r'^Parágrafo único\b', txt, re.I):
+                      pid = f'{prefix}-art-{slug(current)}-par-unico'
+                      if pid not in used:
+                          tag['id'] = pid
+                          used.add(pid)
+                          count += 1
+                      continue
+
+                  m = re.match(r'^([IVXLCDM]+)\s*[—–-]\s+', txt, re.I)
+                  if m:
+                      iid = f'{prefix}-art-{slug(current)}-inc-{m.group(1).lower()}'
+                      if iid not in used:
+                          tag['id'] = iid
+                          used.add(iid)
+                          count += 1
+                      continue
+
+                  m = re.match(r'^([a-z])\)\s+', txt, re.I)
+                  if m:
+                      lid = f'{prefix}-art-{slug(current)}-ali-{m.group(1).lower()}'
+                      if lid not in used:
+                          tag['id'] = lid
+                          used.add(lid)
+                          count += 1
+              return count
+
+          failures = []
           for n in manifest['normativos']:
-              r=requests.get(n['url'],timeout=90,headers=headers)
-              r.raise_for_status()
-              soup=BeautifulSoup(r.text,'html.parser')
-              for s in soup(['script','style','noscript']):
-                  s.decompose()
-              prefix=n['id']
-              count=anchor_doc(soup,prefix)
-              out=Path(n['dir'])/n['file']
-              out.parent.mkdir(parents=True,exist_ok=True)
-              out.write_text(str(soup),encoding='utf-8')
-              print(n['id'],count,out)
+              try:
+                  r = requests.get(n['url'], timeout=90, headers=headers)
+                  r.raise_for_status()
+                  soup = BeautifulSoup(r.text, 'html.parser')
+                  for s in soup(['script', 'style', 'noscript']):
+                      s.decompose()
+                  count = anchor_doc(soup, n['id'])
+                  out = Path(n['dir']) / n['file']
+                  out.parent.mkdir(parents=True, exist_ok=True)
+                  out.write_text(str(soup), encoding='utf-8')
+                  print(f'OK {n["id"]}: {count} anchors -> {out}')
+              except Exception as e:
+                  failures.append(f'{n["id"]}: {e}')
+                  print(f'ERROR {n["id"]}: {e}')
+
+          if failures:
+              print('\nBuild failures:')
+              print('\n'.join(failures))
+              raise SystemExit(1)
+          PY
+      - name: Verify anchors-only output
+        run: |
+          python <<'PY'
+          import re
+          from pathlib import Path
+          files = list(Path('constituicao').glob('*.html')) + list(Path('codigos').glob('*.html')) + list(Path('leis').glob('*.html')) + list(Path('decretos-lei').glob('*.html'))
+          if not files:
+              raise SystemExit('No generated HTML files found')
+          total_ids = 0
+          for p in files:
+              s = p.read_text(encoding='utf-8')
+              ids = re.findall(r'\bid=["\']([^"\']+)["\']', s)
+              hrefs = re.findall(r'\bhref=["\']([^"\']+)["\']', s)
+              if hrefs:
+                  raise SystemExit(f'New hyperlinks detected in {p}: {len(hrefs)} hrefs')
+              if len(ids) != len(set(ids)):
+                  raise SystemExit(f'Duplicate IDs in {p}')
+              total_ids += len(ids)
+          print(f'VALID: {len(files)} files, {total_ids} IDs, 0 hrefs')
           PY
       - name: Commit generated HTML
         run: |
