@@ -1,0 +1,297 @@
+name: Build final audited package
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-final-audited.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build audited package
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml charset-normalizer openpyxl
+          python <<'PY'
+          import re, json, hashlib, shutil, zipfile, html as htmlmod
+          from pathlib import Path
+          from urllib.parse import urljoin
+          import requests
+          from bs4 import BeautifulSoup
+          from charset_normalizer import from_bytes
+          from openpyxl import Workbook
+          from openpyxl.styles import Font, PatternFill, Alignment
+          from openpyxl.utils import get_column_letter
+
+          ROOT=Path('pacote-auditado')
+          if ROOT.exists(): shutil.rmtree(ROOT)
+          ROOT.mkdir()
+          BASE='https://pajeweb.github.io/leis-linkadas/'
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36'
+          session=requests.Session(); session.headers.update({'User-Agent':UA,'Accept':'text/html,application/xhtml+xml'})
+
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          def norm_ws(s): return re.sub(r'\s+',' ',s or '').strip()
+          def decode_bytes(raw, headers=None):
+              candidates=[]
+              ct=(headers or {}).get('content-type','')
+              m=re.search(r'charset\s*=\s*["\']?([\w.-]+)',ct,re.I)
+              if m: candidates.append(m.group(1))
+              head=raw[:12000]
+              for pat in [br'<meta[^>]+charset\s*=\s*["\']?([\w.-]+)', br'<meta[^>]+content=["\'][^"\']*charset=([\w.-]+)']:
+                  mm=re.search(pat,head,re.I)
+                  if mm:
+                      try: candidates.append(mm.group(1).decode('ascii'))
+                      except: pass
+              best=from_bytes(raw).best()
+              if best and best.encoding: candidates.append(best.encoding)
+              candidates += ['utf-8','windows-1252','iso-8859-1']
+              seen=[]
+              for enc in candidates:
+                  enc=(enc or '').strip().lower()
+                  if enc and enc not in seen: seen.append(enc)
+              badseq=re.compile(r'(Ã[\x80-\xbf]|Â[\x80-\xbfºª§]|â€|â€™|â€œ|â€�|ï»¿|\ufffd)')
+              scored=[]
+              for enc in seen:
+                  try:
+                      txt=raw.decode(enc)
+                  except Exception:
+                      continue
+                  score=len(badseq.findall(txt))*1000 + txt.count('\ufffd')*10000
+                  scored.append((score, enc, txt))
+              if not scored: raise RuntimeError('Nenhuma decodificação possível')
+              scored.sort(key=lambda x:x[0])
+              score,enc,txt=scored[0]
+              if '\ufffd' in txt or badseq.search(txt):
+                  raise RuntimeError(f'Mojibake detectado após decodificação: {enc}')
+              return txt,enc
+
+          def fetch(url):
+              r=session.get(url,timeout=90,allow_redirects=True)
+              r.raise_for_status()
+              txt,enc=decode_bytes(r.content,r.headers)
+              return r.content,txt,enc,r.url
+
+          def find_compiled_link(base_url,text):
+              soup=BeautifulSoup(text,'lxml')
+              ranked=[]
+              for a in soup.find_all('a',href=True):
+                  label=norm_ws(a.get_text(' ',strip=True)).lower()
+                  href=a.get('href','').strip()
+                  if not href or href.startswith('#') or href.lower().startswith('javascript:'): continue
+                  score=None
+                  if 'texto consolidado' in label: score=0
+                  elif 'texto compilado' in label: score=1
+                  elif 'texto atualizado' in label: score=2
+                  if score is not None:
+                      ranked.append((score,urljoin(base_url,href),label))
+              ranked.sort(key=lambda x:x[0])
+              return ranked[0] if ranked else None
+
+          def resolve_planalto(canonical):
+              raw,txt,enc,final=fetch(canonical)
+              link=find_compiled_link(final,txt)
+              if link:
+                  _,resolved,label=link
+                  raw2,txt2,enc2,final2=fetch(resolved)
+                  return {'canonical':canonical,'resolved':final2,'label':label,'raw':raw2,'text':txt2,'encoding':enc2,'selection':'link-oficial-'+label}
+              return {'canonical':canonical,'resolved':final,'label':'','raw':raw,'text':txt,'encoding':enc,'selection':'pagina-oficial-sem-link-separado'}
+
+          def resolve_cnj(canonical):
+              raw,txt,enc,final=fetch(canonical)
+              link=find_compiled_link(final,txt)
+              if link:
+                  _,resolved,label=link
+                  try:
+                      raw2,txt2,enc2,final2=fetch(resolved)
+                      return {'canonical':canonical,'resolved':final2,'label':label,'raw':raw2,'text':txt2,'encoding':enc2,'selection':'link-oficial-'+label}
+                  except Exception:
+                      pass
+              return {'canonical':canonical,'resolved':final,'label':'','raw':raw,'text':txt,'encoding':enc,'selection':'pagina-oficial-cnj-atual'}
+
+          legal=[
+          ('cf-1988','Constituição Federal de 1988','https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm','constituicao/constituicao-federal.html'),
+          ('cc-2002','Código Civil — Lei 10.406/2002','https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm','codigos/codigo-civil.html'),
+          ('cpc-2015','Código de Processo Civil — Lei 13.105/2015','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm','codigos/codigo-processo-civil.html'),
+          ('cp-1940','Código Penal — Decreto-Lei 2.848/1940','https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848.htm','codigos/codigo-penal.html'),
+          ('cpp-1941','Código de Processo Penal — Decreto-Lei 3.689/1941','https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689.htm','codigos/codigo-processo-penal.html'),
+          ('ctn-1966','Código Tributário Nacional — Lei 5.172/1966','https://www.planalto.gov.br/ccivil_03/leis/l5172.htm','codigos/codigo-tributario-nacional.html'),
+          ('lei-6015-1973','Lei 6.015/1973 — Registros Públicos','https://www.planalto.gov.br/ccivil_03/leis/l6015.htm','leis/lei-6015-1973.html'),
+          ('lei-6766-1979','Lei 6.766/1979 — Parcelamento do Solo Urbano','https://www.planalto.gov.br/ccivil_03/leis/l6766.htm','leis/lei-6766-1979.html'),
+          ('lei-4591-1964','Lei 4.591/1964 — Condomínios e Incorporações','https://www.planalto.gov.br/ccivil_03/leis/l4591.htm','leis/lei-4591-1964.html'),
+          ('lei-8935-1994','Lei 8.935/1994 — Notários e Registradores','https://www.planalto.gov.br/ccivil_03/leis/l8935.htm','leis/lei-8935-1994.html'),
+          ('lei-9492-1997','Lei 9.492/1997 — Protesto','https://www.planalto.gov.br/ccivil_03/leis/l9492.htm','leis/lei-9492-1997.html'),
+          ('lei-12846-2013','Lei 12.846/2013 — Anticorrupção','https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12846.htm','leis/lei-12846-2013.html'),
+          ('lei-13709-2018','LGPD — Lei 13.709/2018','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm','leis/lei-13709-2018.html'),
+          ('lei-13146-2015','Lei 13.146/2015 — Estatuto da Pessoa com Deficiência','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm','leis/lei-13146-2015.html'),
+          ('lei-10257-2001','Lei 10.257/2001 — Estatuto da Cidade','https://www.planalto.gov.br/ccivil_03/leis/leis_2001/l10257.htm','leis/lei-10257-2001.html'),
+          ('lei-13089-2015','Lei 13.089/2015 — Estatuto da Metrópole','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13089.htm','leis/lei-13089-2015.html'),
+          ('lei-13874-2019','Lei 13.874/2019 — Liberdade Econômica','https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13874.htm','leis/lei-13874-2019.html'),
+          ('lei-8245-1991','Lei 8.245/1991 — Locações','https://www.planalto.gov.br/ccivil_03/leis/l8245.htm','leis/lei-8245-1991.html'),
+          ('lei-8009-1990','Lei 8.009/1990 — Bem de Família','https://www.planalto.gov.br/ccivil_03/leis/l8009.htm','leis/lei-8009-1990.html'),
+          ('lei-9099-1995','Lei 9.099/1995 — Juizados Especiais','https://www.planalto.gov.br/ccivil_03/leis/l9099.htm','leis/lei-9099-1995.html'),
+          ('lei-9514-1997','Lei 9.514/1997 — SFI e Alienação Fiduciária','https://www.planalto.gov.br/ccivil_03/leis/l9514.htm','leis/lei-9514-1997.html'),
+          ('lei-14711-2023','Lei 14.711/2023 — Marco Legal das Garantias','https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14711.htm','leis/lei-14711-2023.html'),
+          ('lei-4380-1964','Lei 4.380/1964 — SFH','https://www.planalto.gov.br/ccivil_03/leis/l4380.htm','leis/lei-4380-1964.html'),
+          ('lei-8429-1992','Lei 8.429/1992 — Improbidade Administrativa','https://www.planalto.gov.br/ccivil_03/leis/l8429.htm','leis/lei-8429-1992.html'),
+          ('lei-12527-2011','Lei 12.527/2011 — LAI','https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm','leis/lei-12527-2011.html'),
+          ('lei-13460-2017','Lei 13.460/2017 — Direitos do Usuário de Serviço Público','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13460.htm','leis/lei-13460-2017.html'),
+          ('lei-9784-1999','Lei 9.784/1999 — Processo Administrativo Federal','https://www.planalto.gov.br/ccivil_03/leis/l9784.htm','leis/lei-9784-1999.html'),
+          ('lei-10169-2000','Lei 10.169/2000 — Emolumentos','https://www.planalto.gov.br/ccivil_03/leis/l10169.htm','leis/lei-10169-2000.html'),
+          ('lei-14133-2021','Lei 14.133/2021 — Licitações e Contratos','https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm','leis/lei-14133-2021.html'),
+          ('lei-14382-2022','Lei 14.382/2022 — SERP','https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2022/lei/l14382.htm','leis/lei-14382-2022.html'),
+          ('lei-13465-2017','Lei 13.465/2017 — Regularização Fundiária','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13465.htm','leis/lei-13465-2017.html'),
+          ('dl-911-1969','Decreto-Lei 911/1969 — Alienação Fiduciária de Bens Móveis','https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911.htm','decretos-lei/dl-911-1969.html'),
+          ('dl-3365-1941','Decreto-Lei 3.365/1941 — Desapropriações','https://www.planalto.gov.br/ccivil_03/decreto-lei/del3365.htm','decretos-lei/dl-3365-1941.html')]
+
+          cnjdata=[
+          ('cnj-res-20-2006','Resolução 20/2006',184,'cnj/resolucoes/resolucao-20-2006.html'),('cnj-res-35-2007','Resolução 35/2007',179,'cnj/resolucoes/resolucao-35-2007.html'),('cnj-res-67-2009','Resolução 67/2009',124,'cnj/resolucoes/resolucao-67-2009.html'),('cnj-res-80-2009','Resolução 80/2009',105,'cnj/resolucoes/resolucao-80-2009.html'),('cnj-res-81-2009','Resolução 81/2009',104,'cnj/resolucoes/resolucao-81-2009.html'),('cnj-res-125-2010','Resolução 125/2010',156,'cnj/resolucoes/resolucao-125-2010.html'),('cnj-res-155-2012','Resolução 155/2012',57,'cnj/resolucoes/resolucao-155-2012.html'),('cnj-res-175-2013','Resolução 175/2013',1754,'cnj/resolucoes/resolucao-175-2013.html'),('cnj-res-227-2016','Resolução 227/2016',2295,'cnj/resolucoes/resolucao-227-2016.html'),('cnj-res-228-2016','Resolução 228/2016',2299,'cnj/resolucoes/resolucao-228-2016.html'),('cnj-res-269-2018','Resolução 269/2018',2758,'cnj/resolucoes/resolucao-269-2018.html'),('cnj-res-401-2021','Resolução 401/2021',3987,'cnj/resolucoes/resolucao-401-2021.html'),('cnj-res-402-2021','Resolução 402/2021',4018,'cnj/resolucoes/resolucao-402-2021.html'),('cnj-res-conj-3-2012','Resolução Conjunta 3/2012',1731,'cnj/resolucoes/resolucao-conjunta-3-2012.html'),
+          ('cnj-prov-12-2010','Provimento 12/2010',1302,'cnj/provimentos/provimento-12-2010.html'),('cnj-prov-14-2011','Provimento 14/2011',1301,'cnj/provimentos/provimento-14-2011.html'),('cnj-prov-16-2012','Provimento 16/2012',1299,'cnj/provimentos/provimento-16-2012.html'),('cnj-prov-25-2012','Provimento 25/2012',1636,'cnj/provimentos/provimento-25-2012.html'),('cnj-prov-26-2012','Provimento 26/2012',1657,'cnj/provimentos/provimento-26-2012.html'),('cnj-prov-39-2014','Provimento 39/2014',2049,'cnj/provimentos/provimento-39-2014.html'),('cnj-prov-44-2015','Provimento 44/2015',2507,'cnj/provimentos/provimento-44-2015.html'),('cnj-prov-50-2015','Provimento 50/2015',2512,'cnj/provimentos/provimento-50-2015.html'),('cnj-prov-56-2016','Provimento 56/2016',2518,'cnj/provimentos/provimento-56-2016.html'),('cnj-prov-62-2017','Provimento 62/2017',2524,'cnj/provimentos/provimento-62-2017.html'),('cnj-prov-63-2017','Provimento 63/2017',2525,'cnj/provimentos/provimento-63-2017.html'),('cnj-prov-73-2018','Provimento 73/2018',2623,'cnj/provimentos/provimento-73-2018.html'),('cnj-prov-74-2018','Provimento 74/2018',2637,'cnj/provimentos/provimento-74-2018.html'),('cnj-prov-79-2018','Provimento 79/2018',2740,'cnj/provimentos/provimento-79-2018.html'),('cnj-prov-81-2018','Provimento 81/2018',2773,'cnj/provimentos/provimento-81-2018.html'),('cnj-prov-82-2019','Provimento 82/2019',2973,'cnj/provimentos/provimento-82-2019.html'),('cnj-prov-89-2019','Provimento 89/2019',3131,'cnj/provimentos/provimento-89-2019.html'),('cnj-prov-103-2020','Provimento 103/2020',3335,'cnj/provimentos/provimento-103-2020.html'),('cnj-prov-107-2020','Provimento 107/2020',3362,'cnj/provimentos/provimento-107-2020.html'),('cnj-prov-109-2020','Provimento 109/2020',3522,'cnj/provimentos/provimento-109-2020.html'),('cnj-prov-115-2021','Provimento 115/2021',3823,'cnj/provimentos/provimento-115-2021.html'),('cnj-prov-122-2021','Provimento 122/2021',4066,'cnj/provimentos/provimento-122-2021.html'),('cnj-prov-124-2021','Provimento 124/2021',4280,'cnj/provimentos/provimento-124-2021.html'),('cnj-prov-140-2023','Provimento 140/2023',4955,'cnj/provimentos/provimento-140-2023.html'),('cnj-prov-142-2023','Provimento 142/2023',5006,'cnj/provimentos/provimento-142-2023.html'),('cnj-prov-144-2023','Provimento 144/2023',5058,'cnj/provimentos/provimento-144-2023.html')]
+
+          art_re=re.compile(r'^\s*Art(?:igo)?\.?\s*(\d+(?:\s*[-–—]\s*[A-Z]{1,4})?)\s*[º°o]?\.?',re.I)
+          par_re=re.compile(r'^\s*§\s*(\d+(?:\s*[-–—]\s*[A-Z]{1,4})?)\s*[º°o]?\.?',re.I)
+          pu_re=re.compile(r'^\s*Parágrafo\s+único\.?',re.I)
+          inc_re=re.compile(r'^\s*([IVXLCDM]+)\s*(?:[-–—]|\.)\s+',re.I)
+          ali_re=re.compile(r'^\s*([a-z])\)\s+',re.I)
+          item_re=re.compile(r'^\s*(\d+)\)\s+')
+          def nt(s): return re.sub(r'\s*[-–—]\s*','-',s.strip()).lower()
+
+          def add_anchors(text,prefix,prov149=False):
+              soup=BeautifulSoup(text,'lxml')
+              before_text=soup.get_text('',strip=False)
+              href_before=[a.get('href') for a in soup.find_all('a') if a.has_attr('href')]
+              if soup.head:
+                  for m in soup.find_all('meta'):
+                      if m.has_attr('charset'): m['charset']='utf-8'
+                      if 'content' in m.attrs and 'charset=' in str(m.get('content','')).lower(): m['content']=re.sub(r'charset\s*=\s*[^;\s]+','charset=utf-8',m['content'],flags=re.I)
+                  if not soup.find('meta',attrs={'charset':True}):
+                      m=soup.new_tag('meta'); m['charset']='utf-8'; soup.head.insert(0,m)
+              used={x.get('id') for x in soup.find_all(attrs={'id':True}) if x.get('id')}
+              generated=set(); counts={'art':0,'par':0,'inc':0,'ali':0,'item':0}
+              cur_art=cur_par=cur_inc=None; occ={}; in_cnn=not prov149
+              def unique(base):
+                  n=occ.get(base,0)+1; occ[base]=n
+                  cand=base if n==1 else f'{base}-occ-{n}'
+                  while cand in used or cand in generated:
+                      n+=1; occ[base]=n; cand=f'{base}-occ-{n}'
+                  generated.add(cand); return cand
+              for tag in soup.find_all(['p','li','td','blockquote','h1','h2','h3','h4','h5','h6']):
+                  txt=' '.join(tag.stripped_strings)
+                  if not txt: continue
+                  up=txt.upper()
+                  if prov149 and 'CÓDIGO NACIONAL DE NORMAS' in up: in_cnn=True
+                  pfx=prefix+'-cnn' if prov149 and in_cnn else prefix
+                  base=kind=None; m=art_re.match(txt)
+                  if m:
+                      cur_art=nt(m.group(1)); cur_par=cur_inc=None; base=f'{pfx}-art-{cur_art}'; kind='art'
+                  elif cur_art:
+                      if pu_re.match(txt): cur_par='unico'; cur_inc=None; base=f'{pfx}-art-{cur_art}-par-unico'; kind='par'
+                      else:
+                          m=par_re.match(txt)
+                          if m: cur_par=nt(m.group(1)); cur_inc=None; base=f'{pfx}-art-{cur_art}-par-{cur_par}'; kind='par'
+                          else:
+                              m=inc_re.match(txt)
+                              if m:
+                                  cur_inc=m.group(1).lower(); base=f'{pfx}-art-{cur_art}'+(f'-par-{cur_par}' if cur_par else '')+f'-inc-{cur_inc}'; kind='inc'
+                              else:
+                                  m=ali_re.match(txt)
+                                  if m: base=f'{pfx}-art-{cur_art}'+(f'-par-{cur_par}' if cur_par else '')+(f'-inc-{cur_inc}' if cur_inc else '')+f'-ali-{m.group(1).lower()}'; kind='ali'
+                                  else:
+                                      m=item_re.match(txt)
+                                      if m and (cur_par or cur_inc): base=f'{pfx}-art-{cur_art}'+(f'-par-{cur_par}' if cur_par else '')+(f'-inc-{cur_inc}' if cur_inc else '')+f'-item-{m.group(1)}'; kind='item'
+                  if base:
+                      span=soup.new_tag('span'); span['id']=unique(base); tag.insert(0,span); counts[kind]+=1
+              after_text=soup.get_text('',strip=False)
+              if before_text != after_text: raise RuntimeError('Texto visível mudou ao inserir âncoras')
+              href_after=[a.get('href') for a in soup.find_all('a') if a.has_attr('href')]
+              if href_before != href_after: raise RuntimeError('Hyperlinks mudaram ao inserir âncoras')
+              if counts['art']==0: raise RuntimeError('Nenhum artigo ancorado')
+              out='<!doctype html>\n'+str(soup)
+              bad=re.compile(r'(Ã[\x80-\xbf]|Â[\x80-\xbfºª§]|â€|â€™|â€œ|â€�|ï»¿|\ufffd)')
+              if bad.search(out): raise RuntimeError('Mojibake no HTML final')
+              return out,counts,len(href_before),len(generated)
+
+          items=[]
+          items.append(('cnj-prov-149-2023','Provimento CNJ 149/2023 + CNN/CN/CNJ-Extra','https://atos.cnj.jus.br/atos/detalhar/5243','cnj/provimento-149-2023.html','cnj',True))
+          for p,t,i,f in cnjdata: items.append((p,t,f'https://atos.cnj.jus.br/atos/detalhar/{i}',f,'cnj',False))
+          for p,t,u,f in legal: items.append((p,t,u,f,'planalto',False))
+          report=[]
+          for idx,(prefix,title,url,file,kind,prov149) in enumerate(items,1):
+              print(f'[{idx}/{len(items)}] {title}')
+              src=resolve_cnj(url) if kind=='cnj' else resolve_planalto(url)
+              out,counts,hrefs,gen=add_anchors(src['text'],prefix,prov149)
+              dest=ROOT/file; dest.parent.mkdir(parents=True,exist_ok=True); dest.write_text(out,encoding='utf-8',newline='\n')
+              report.append({'prefixo':prefix,'normativo':title,'arquivo':file,'fonte_canonica':src['canonical'],'fonte_resolvida':src['resolved'],'criterio_fonte':src['selection'],'rotulo_compilacao':src['label'],'encoding_origem':src['encoding'],'sha256_origem':sha(src['raw']),'sha256_saida_utf8':sha(out.encode('utf-8')),'ancoras':counts,'ancoras_geradas':gen,'hrefs_preservados':hrefs,'url_pages':BASE+file})
+
+          # Regras de fonte conhecidas e obrigatórias
+          by={r['prefixo']:r for r in report}
+          checks={
+            'lei-6766-1979': r'l6766compilado\.htm$',
+            'lei-6015-1973': r'l6015(?:consolidado|compilad[oa])\.htm$',
+            'cc-2002': r'l10406compilad[oa]\.htm$',
+            'cpc-2015': r'l13105compilad[oa]\.htm$',
+            'cp-1940': r'del2848compilado\.htm$',
+            'cpp-1941': r'del3689compilado\.htm$',
+            'ctn-1966': r'l5172compilado\.htm$',
+            'dl-911-1969': r'del0911compilado\.htm$'
+          }
+          for k,pat in checks.items():
+              if not re.search(pat,by[k]['fonte_resolvida'],re.I): raise RuntimeError(f'Fonte compilada não resolvida para {k}: {by[k]["fonte_resolvida"]}')
+
+          # Spot checks de conteúdo/acentuação
+          spot={
+            'codigos/codigo-civil.html':['PRESIDENTE DA REPÚBLICA','Faço saber','personalidade civil','começa'],
+            'leis/lei-6766-1979.html':['Parcelamento do Solo Urbano','Parágrafo único','Municípios'],
+            'leis/lei-6015-1973.html':['Registros Públicos','eficácia']
+          }
+          for f,phrases in spot.items():
+              s=(ROOT/f).read_text(encoding='utf-8')
+              for ph in phrases:
+                  if ph not in s: raise RuntimeError(f'Spot-check ausente em {f}: {ph}')
+
+          (ROOT/'MANIFESTO-FONTES-AUDITADAS.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+
+          groups={}
+          for r in report: groups.setdefault(r['arquivo'].split('/')[0],[]).append(r)
+          labels={'cnj':'CNJ','constituicao':'Constituição','codigos':'Códigos','leis':'Leis','decretos-lei':'Decretos-Lei'}
+          sec=[]
+          for g,rows in groups.items():
+              lis=''.join(f'<li><a href="{htmlmod.escape(x["arquivo"])}">{htmlmod.escape(x["normativo"])}</a><small>{htmlmod.escape(x["criterio_fonte"])}</small></li>' for x in sorted(rows,key=lambda z:z['normativo']))
+              sec.append(f'<section><h2>{labels.get(g,g.title())}</h2><ul>{lis}</ul></section>')
+          index='''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Leis Linkadas</title><style>body{font-family:system-ui,Arial;max-width:1100px;margin:32px auto;padding:0 20px;color:#172033}input{width:100%;padding:12px;box-sizing:border-box;margin:16px 0}li{margin:8px 0}small{display:block;color:#666}</style></head><body><h1>Normativos ancorados</h1><p>Fontes oficiais auditadas e textos convertidos para UTF-8.</p><input id="q" placeholder="Filtrar normativos...">'''+''.join(sec)+'''<script>q.oninput=()=>{const s=q.value.toLowerCase();document.querySelectorAll('li').forEach(x=>x.style.display=x.innerText.toLowerCase().includes(s)?'':'none')}</script></body></html>'''
+          (ROOT/'index.html').write_text(index,encoding='utf-8')
+
+          wb=Workbook(); ws=wb.active; ws.title='Fontes auditadas'
+          headers=['Normativo','Arquivo','Fonte canônica','Fonte resolvida usada','Critério da fonte','Rótulo oficial','Encoding origem','Prefixo','URL GitHub Pages','Exemplo Art. 1','Arts','Pars','Incisos','Alíneas','Itens','Hrefs preservados','SHA256 origem','SHA256 saída']
+          ws.append(headers)
+          for r in report:
+              p=r['prefixo']+('-cnn' if r['prefixo']=='cnj-prov-149-2023' else '')
+              a=r['ancoras']; ws.append([r['normativo'],r['arquivo'],r['fonte_canonica'],r['fonte_resolvida'],r['criterio_fonte'],r['rotulo_compilacao'],r['encoding_origem'],r['prefixo'],r['url_pages'],r['url_pages']+'#'+p+'-art-1',a['art'],a['par'],a['inc'],a['ali'],a['item'],r['hrefs_preservados'],r['sha256_origem'],r['sha256_saida_utf8']])
+          for c in range(1,len(headers)+1):
+              ws.cell(1,c).font=Font(bold=True,color='FFFFFF'); ws.cell(1,c).fill=PatternFill('solid',fgColor='1F4E78'); ws.cell(1,c).alignment=Alignment(wrap_text=True)
+          ws.freeze_panes='A2'; ws.auto_filter.ref=ws.dimensions
+          widths=[42,42,62,68,28,24,18,28,68,88,10,10,10,10,10,16,68,68]
+          for i,w in enumerate(widths,1): ws.column_dimensions[get_column_letter(i)].width=w
+          wb.save(ROOT/'planilha-links-fontes-auditadas.xlsx')
+
+          audit='''PACOTE LEIS LINKADAS — FONTES AUDITADAS\n\nCritérios:\n1. Para cada diploma federal, a página canônica oficial do Planalto foi aberta e o próprio link oficial “Texto consolidado”, “Texto compilado” ou “Texto atualizado” foi seguido, nessa prioridade.\n2. Quando não existe link separado, foi mantida a página oficial corrente e isso fica registrado no manifesto.\n3. Lei 6.766/1979, Lei 6.015/1973, CC, CPC, CP, CPP, CTN e DL 911 têm validação obrigatória de URL compilada/consolidada.\n4. Charset é detectado a partir do HTTP/meta e validado contra mojibake; saída é UTF-8.\n5. O texto visível e a lista de hyperlinks são comparados antes/depois da inclusão das âncoras e não podem mudar.\n6. IDs oficiais existentes não são sobrescritos; as novas âncoras são spans vazios.\n7. O build falha se qualquer normativo ficar sem artigo ancorado.\n8. MANIFESTO-FONTES-AUDITADAS.json registra exatamente qual fonte foi usada em cada arquivo.\n\nPublique o CONTEÚDO deste ZIP na raiz do repositório.\n'''
+          (ROOT/'LEIA-ME-AUDITORIA.txt').write_text(audit,encoding='utf-8')
+          z=Path('pacote-leis-linkadas-final-auditado.zip')
+          if z.exists(): z.unlink()
+          with zipfile.ZipFile(z,'w',zipfile.ZIP_DEFLATED) as zz:
+              for p in ROOT.rglob('*'):
+                  if p.is_file(): zz.write(p,p.relative_to(ROOT))
+          print('PACOTE_OK',len(report),'normativos',z.stat().st_size,'bytes')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote-leis-linkadas-final-auditado
+          path: pacote-leis-linkadas-final-auditado.zip
+          if-no-files-found: error
+          retention-days: 30
