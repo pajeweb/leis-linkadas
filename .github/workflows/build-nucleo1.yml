@@ -1,4 +1,4 @@
-name: Build Núcleo 1 anchors
+name: Build Núcleo 1 ZIP
 
 on:
   push:
@@ -17,123 +17,128 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
-      - name: Build HTML files with anchors only
+          python-version: '3.13'
+
+      - name: Build preserved-source HTML with anchors only
         run: |
-          python -m pip install beautifulsoup4 requests
+          python -m pip install requests
           python <<'PY'
-          import json, re, requests
+          import json, re, html, requests, hashlib, zipfile
           from pathlib import Path
-          from bs4 import BeautifulSoup
 
           manifest = json.loads(Path('normativos-manifest.json').read_text(encoding='utf-8'))
           headers = {'User-Agent': 'Mozilla/5.0 (compatible; leis-linkadas/1.0)'}
-
-          def norm(s):
-              return re.sub(r'\s+', ' ', s.replace('\xa0', ' ')).strip()
+          root = Path('dist/nucleo1-anchors')
+          root.mkdir(parents=True, exist_ok=True)
 
           def slug(s):
               trans = str.maketrans('áàãâéêíóôõúç', 'aaaaeeiooouc')
               return re.sub(r'[^a-z0-9]+', '-', s.lower().replace('º','').replace('°','').translate(trans)).strip('-')
 
-          def anchor_doc(soup, prefix):
-              used = {t.get('id') for t in soup.find_all(True) if t.get('id')}
-              count = 0
-              current = None
-              for tag in soup.find_all(['p','div','li','td','blockquote','h1','h2','h3','h4','h5']):
-                  txt = norm(tag.get_text(' ', strip=True))
-                  if not txt:
-                      continue
-                  m = re.match(r'^Art\.?\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?', txt, re.I)
-                  if m:
-                      current = m.group(1).replace('–','-').upper()
-                      aid = f'{prefix}-art-{slug(current)}'
-                      if aid not in used:
-                          tag['id'] = aid; used.add(aid); count += 1
-                      continue
-                  if current is None:
-                      continue
-                  m = re.match(r'^§\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?', txt, re.I)
-                  if m:
-                      pid = f'{prefix}-art-{slug(current)}-par-{slug(m.group(1))}'
-                      if pid not in used:
-                          tag['id'] = pid; used.add(pid); count += 1
-                      continue
-                  if re.match(r'^Parágrafo único\b', txt, re.I):
-                      pid = f'{prefix}-art-{slug(current)}-par-unico'
-                      if pid not in used:
-                          tag['id'] = pid; used.add(pid); count += 1
-                      continue
-                  m = re.match(r'^([IVXLCDM]+)\s*[—–-]\s+', txt, re.I)
-                  if m:
-                      iid = f'{prefix}-art-{slug(current)}-inc-{m.group(1).lower()}'
-                      if iid not in used:
-                          tag['id'] = iid; used.add(iid); count += 1
-                      continue
-                  m = re.match(r'^([a-z])\)\s+', txt, re.I)
-                  if m:
-                      lid = f'{prefix}-art-{slug(current)}-ali-{m.group(1).lower()}'
-                      if lid not in used:
-                          tag['id'] = lid; used.add(lid); count += 1
-              return count
+          def visible_text(block_bytes, enc):
+              s = block_bytes.decode(enc, errors='replace')
+              s = re.sub(r'(?is)<script\b.*?</script>|<style\b.*?</style>', ' ', s)
+              s = re.sub(r'(?is)<[^>]+>', ' ', s)
+              s = html.unescape(s).replace('\xa0',' ')
+              return re.sub(r'\s+', ' ', s).strip()
 
-          original_hrefs = {}
-          failures = []
+          tag_re = re.compile(rb'(?is)<(p|li|td|th|h[1-6])\b([^>]*)>(.*?)</\1\s*>')
+          id_re = re.compile(rb'(?i)\bid\s*=')
+
+          report=[]
+          failures=[]
+
           for n in manifest['normativos']:
-              url = n['url']
-              if n['id'] == 'dl-911-1969':
-                  url = 'https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911compilado.htm'
+              url=n['url']
+              if n['id']=='dl-911-1969':
+                  url='https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911compilado.htm'
               try:
-                  r = requests.get(url, timeout=90, headers=headers)
+                  r=requests.get(url,timeout=90,headers=headers)
                   r.raise_for_status()
-                  soup = BeautifulSoup(r.text, 'html.parser')
-                  original_hrefs[n['file']] = [a.get('href') for a in soup.find_all('a') if a.get('href') is not None]
-                  for s in soup(['script','style','noscript']):
-                      s.decompose()
-                  count = anchor_doc(soup, n['id'])
-                  out = Path(n['dir']) / n['file']
-                  out.parent.mkdir(parents=True, exist_ok=True)
-                  out.write_text(str(soup), encoding='utf-8')
-                  print(f'OK {n["id"]}: {count} anchors -> {out}')
-              except Exception as e:
-                  failures.append(f'{n["id"]}: {e}')
-                  print(f'ERROR {n["id"]}: {e}')
+                  raw=r.content
+                  enc=r.encoding or r.apparent_encoding or 'latin-1'
+                  before_hrefs=len(re.findall(rb'(?i)\bhref\s*=',raw))
+                  before_sha=hashlib.sha256(raw).hexdigest()
+                  current=None
+                  used=set()
+                  count=0
+                  pieces=[]
+                  pos=0
 
-          Path('.original-hrefs.json').write_text(json.dumps(original_hrefs, ensure_ascii=False, indent=2), encoding='utf-8')
+                  for m in tag_re.finditer(raw):
+                      full=m.group(0); tag=m.group(1); attrs=m.group(2); inner=m.group(3)
+                      txt=visible_text(inner,enc)
+                      anchor=None
+                      ma=re.match(r'^Art\.?\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?',txt,re.I)
+                      if ma:
+                          current=ma.group(1).replace('–','-').upper()
+                          anchor=f"{n['id']}-art-{slug(current)}"
+                      elif current:
+                          mp=re.match(r'^§\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?',txt,re.I)
+                          if mp:
+                              anchor=f"{n['id']}-art-{slug(current)}-par-{slug(mp.group(1))}"
+                          elif re.match(r'^Parágrafo único\b',txt,re.I):
+                              anchor=f"{n['id']}-art-{slug(current)}-par-unico"
+                          else:
+                              mi=re.match(r'^([IVXLCDM]+)\s*[—–-]\s+',txt,re.I)
+                              if mi:
+                                  anchor=f"{n['id']}-art-{slug(current)}-inc-{mi.group(1).lower()}"
+                              else:
+                                  ml=re.match(r'^([a-z])\)\s+',txt,re.I)
+                                  if ml:
+                                      anchor=f"{n['id']}-art-{slug(current)}-ali-{ml.group(1).lower()}"
+
+                      if anchor and anchor not in used and not id_re.search(attrs):
+                          used.add(anchor)
+                          opening_end=full.find(b'>')
+                          new_full=full[:opening_end] + f' id="{anchor}"'.encode('ascii') + full[opening_end:]
+                          pieces.append(raw[pos:m.start()]); pieces.append(new_full); pos=m.end(); count+=1
+
+                  pieces.append(raw[pos:])
+                  out_bytes=b''.join(pieces)
+                  after_hrefs=len(re.findall(rb'(?i)\bhref\s*=',out_bytes))
+                  if after_hrefs!=before_hrefs:
+                      raise RuntimeError(f'href count changed {before_hrefs}->{after_hrefs}')
+                  anchors=re.findall((rb'\bid="'+re.escape(n['id'].encode())+rb'-[^\"]+"'),out_bytes,re.I)
+                  if len(anchors)!=len(set(anchors)):
+                      raise RuntimeError('duplicate generated anchors')
+                  if count==0:
+                      raise RuntimeError('zero anchors generated')
+
+                  out=root/n['dir']/n['file']
+                  out.parent.mkdir(parents=True,exist_ok=True)
+                  out.write_bytes(out_bytes)
+                  report.append({
+                      'id':n['id'],'title':n['title'],'source':url,'file':str(out.relative_to(root)),
+                      'anchors':count,'hrefs_preserved':before_hrefs,'source_sha256':before_sha,
+                      'output_sha256':hashlib.sha256(out_bytes).hexdigest()
+                  })
+                  print(f"OK {n['id']}: {count} anchors, {before_hrefs} hrefs preserved")
+              except Exception as e:
+                  failures.append(f"{n['id']}: {e}")
+                  print(f"ERROR {n['id']}: {e}")
+
+          (root/'VALIDACAO.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          (root/'LEIA-ME.txt').write_text(
+              'Núcleo 1 — HTMLs oficiais com âncoras adicionadas.\n'
+              'Nenhum hyperlink novo é criado. Os hrefs existentes na fonte são preservados em quantidade.\n'
+              'Estrutura pronta para upload no repositório leis-linkadas.\n',encoding='utf-8')
+
           if failures:
-              print('\nBuild failures:')
-              print('\n'.join(failures))
-              raise SystemExit(1)
+              raise SystemExit('Build failures:\n'+'\n'.join(failures))
+
+          zip_path=Path('dist/nucleo1-anchors.zip')
+          with zipfile.ZipFile(zip_path,'w',zipfile.ZIP_DEFLATED) as z:
+              for p in root.rglob('*'):
+                  if p.is_file():
+                      z.write(p,p.relative_to(root))
+          print(f'ZIP {zip_path} {zip_path.stat().st_size} bytes; {len(report)} normativos')
           PY
-      - name: Verify anchors-only output
-        run: |
-          python <<'PY'
-          import json, re
-          from collections import Counter
-          from pathlib import Path
-          files = list(Path('constituicao').glob('*.html')) + list(Path('codigos').glob('*.html')) + list(Path('leis').glob('*.html')) + list(Path('decretos-lei').glob('*.html'))
-          original = json.loads(Path('.original-hrefs.json').read_text(encoding='utf-8'))
-          if not files:
-              raise SystemExit('No generated HTML files found')
-          total_ids = 0
-          total_hrefs = 0
-          for p in files:
-              s = p.read_text(encoding='utf-8')
-              ids = re.findall(r'\bid=["\']([^"\']+)["\']', s)
-              hrefs = re.findall(r'\bhref=["\']([^"\']+)["\']', s)
-              expected = original.get(p.name, [])
-              if Counter(hrefs) != Counter(expected):
-                  raise SystemExit(f'Hyperlinks changed in {p}: original={len(expected)}, generated={len(hrefs)}')
-              if len(ids) != len(set(ids)):
-                  raise SystemExit(f'Duplicate IDs in {p}')
-              total_ids += len(ids)
-              total_hrefs += len(hrefs)
-          print(f'VALID: {len(files)} files, {total_ids} IDs, {total_hrefs} original hrefs preserved, 0 new hrefs')
-          PY
-      - name: Commit generated HTML
+
+      - name: Commit ZIP package only
         run: |
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot].com'
-          git add constituicao codigos leis decretos-lei
-          git diff --cached --quiet || git commit -m 'Build Núcleo 1 normativos with anchors only'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add dist/nucleo1-anchors.zip
+          git diff --cached --quiet || git commit -m 'Add Núcleo 1 anchors ZIP package'
           git push
