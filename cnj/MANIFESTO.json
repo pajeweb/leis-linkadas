@@ -1,0 +1,640 @@
+{
+  "base_analise": "https://atos.cnj.jus.br/atos/detalhar/5243",
+  "criterio": "Resoluções correlatas (não incorporáveis ao Provimento) e Provimentos que a Exposição de Motivos do Provimento 149 declara preservados total/parcialmente ou objeto de remissão.",
+  "observacoes": [
+    "Os atos são cópias das páginas oficiais do CNJ com apenas IDs/âncoras adicionados; hrefs preexistentes são preservados.",
+    "A situação jurídica exibida é a que foi possível extrair da página oficial no momento da geração; conferir atos revogados/suspensos antes de uso jurídico."
+  ],
+  "itens": [
+    {
+      "tipo": "resolucao",
+      "numero": 20,
+      "ano": 2006,
+      "arquivo": "cnj/resolucoes/resolucao-20-2006.html",
+      "prefixo": "cnj-res-20-2006",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/184",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 3,
+        "par": 1
+      },
+      "hrefs_originais_preservados": 7,
+      "ids_total": 4
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 35,
+      "ano": 2007,
+      "arquivo": "cnj/resolucoes/resolucao-35-2007.html",
+      "prefixo": "cnj-res-35-2007",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/179",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 89,
+        "par": 20,
+        "inc": 11
+      },
+      "hrefs_originais_preservados": 107,
+      "ids_total": 120
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 67,
+      "ano": 2009,
+      "arquivo": "cnj/resolucoes/resolucao-67-2009.html",
+      "prefixo": "cnj-res-67-2009",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/124",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 194,
+        "inc": 263,
+        "par": 259,
+        "ali": 16
+      },
+      "hrefs_originais_preservados": 316,
+      "ids_total": 732
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 80,
+      "ano": 2009,
+      "arquivo": "cnj/resolucoes/resolucao-80-2009.html",
+      "prefixo": "cnj-res-80-2009",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/105",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 12,
+        "par": 20,
+        "ali": 11,
+        "inc": 1
+      },
+      "hrefs_originais_preservados": 16,
+      "ids_total": 45
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 81,
+      "ano": 2009,
+      "arquivo": "cnj/resolucoes/resolucao-81-2009.html",
+      "prefixo": "cnj-res-81-2009",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/104",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 21,
+        "par": 71,
+        "inc": 38,
+        "ali": 23
+      },
+      "hrefs_originais_preservados": 117,
+      "ids_total": 153
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 125,
+      "ano": 2010,
+      "arquivo": "cnj/resolucoes/resolucao-125-2010.html",
+      "prefixo": "cnj-res-125-2010",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/156",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 79,
+        "par": 84,
+        "inc": 74,
+        "ali": 15
+      },
+      "hrefs_originais_preservados": 215,
+      "ids_total": 252
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 155,
+      "ano": 2012,
+      "arquivo": "cnj/resolucoes/resolucao-155-2012.html",
+      "prefixo": "cnj-res-155-2012",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/57",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 18,
+        "par": 26,
+        "ali": 18
+      },
+      "hrefs_originais_preservados": 58,
+      "ids_total": 62
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 175,
+      "ano": 2013,
+      "arquivo": "cnj/resolucoes/resolucao-175-2013.html",
+      "prefixo": "cnj-res-175-2013",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1754",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 3
+      },
+      "hrefs_originais_preservados": 5,
+      "ids_total": 3
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 227,
+      "ano": 2016,
+      "arquivo": "cnj/resolucoes/resolucao-227-2016.html",
+      "prefixo": "cnj-res-227-2016",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2295",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 25,
+        "par": 31,
+        "inc": 41,
+        "ali": 12
+      },
+      "hrefs_originais_preservados": 53,
+      "ids_total": 109
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 228,
+      "ano": 2016,
+      "arquivo": "cnj/resolucoes/resolucao-228-2016.html",
+      "prefixo": "cnj-res-228-2016",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2299",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 25,
+        "par": 17,
+        "inc": 17
+      },
+      "hrefs_originais_preservados": 36,
+      "ids_total": 59
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 269,
+      "ano": 2018,
+      "arquivo": "cnj/resolucoes/resolucao-269-2018.html",
+      "prefixo": "cnj-res-269-2018",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2758",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 5,
+        "par": 4
+      },
+      "hrefs_originais_preservados": 12,
+      "ids_total": 9
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 401,
+      "ano": 2021,
+      "arquivo": "cnj/resolucoes/resolucao-401-2021.html",
+      "prefixo": "cnj-res-401-2021",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/3987",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 37,
+        "par": 39,
+        "inc": 57,
+        "ali": 6
+      },
+      "hrefs_originais_preservados": 51,
+      "ids_total": 139
+    },
+    {
+      "tipo": "resolucao",
+      "numero": 402,
+      "ano": 2021,
+      "arquivo": "cnj/resolucoes/resolucao-402-2021.html",
+      "prefixo": "cnj-res-402-2021",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/4018",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 7,
+        "par": 4,
+        "inc": 5
+      },
+      "hrefs_originais_preservados": 25,
+      "ids_total": 16
+    },
+    {
+      "tipo": "resolucao-conjunta",
+      "numero": 3,
+      "ano": 2012,
+      "arquivo": "cnj/resolucoes/resolucao-conjunta-3-2012.html",
+      "prefixo": "cnj-res-conj-3-2012",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1731",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 11,
+        "par": 24,
+        "inc": 5
+      },
+      "hrefs_originais_preservados": 43,
+      "ids_total": 40
+    },
+    {
+      "tipo": "provimento",
+      "numero": 12,
+      "ano": 2010,
+      "arquivo": "cnj/provimentos/provimento-12-2010.html",
+      "prefixo": "cnj-prov-12-2010",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1302",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 11,
+        "par": 14
+      },
+      "hrefs_originais_preservados": 14,
+      "ids_total": 25
+    },
+    {
+      "tipo": "provimento",
+      "numero": 14,
+      "ano": 2011,
+      "arquivo": "cnj/provimentos/provimento-14-2011.html",
+      "prefixo": "cnj-prov-14-2011",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1301",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 8,
+        "par": 2
+      },
+      "hrefs_originais_preservados": 10,
+      "ids_total": 10
+    },
+    {
+      "tipo": "provimento",
+      "numero": 16,
+      "ano": 2012,
+      "arquivo": "cnj/provimentos/provimento-16-2012.html",
+      "prefixo": "cnj-prov-16-2012",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1299",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 10,
+        "par": 18
+      },
+      "hrefs_originais_preservados": 38,
+      "ids_total": 28
+    },
+    {
+      "tipo": "provimento",
+      "numero": 25,
+      "ano": 2012,
+      "arquivo": "cnj/provimentos/provimento-25-2012.html",
+      "prefixo": "cnj-prov-25-2012",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1636",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 5,
+        "par": 1
+      },
+      "hrefs_originais_preservados": 11,
+      "ids_total": 6
+    },
+    {
+      "tipo": "provimento",
+      "numero": 26,
+      "ano": 2012,
+      "arquivo": "cnj/provimentos/provimento-26-2012.html",
+      "prefixo": "cnj-prov-26-2012",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/1657",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 11,
+        "par": 14
+      },
+      "hrefs_originais_preservados": 15,
+      "ids_total": 25
+    },
+    {
+      "tipo": "provimento",
+      "numero": 39,
+      "ano": 2014,
+      "arquivo": "cnj/provimentos/provimento-39-2014.html",
+      "prefixo": "cnj-prov-39-2014",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2049",
+      "situacao": "Revogado",
+      "ancoras": {
+        "art": 25,
+        "par": 29,
+        "ali": 12
+      },
+      "hrefs_originais_preservados": 49,
+      "ids_total": 66
+    },
+    {
+      "tipo": "provimento",
+      "numero": 44,
+      "ano": 2015,
+      "arquivo": "cnj/provimentos/provimento-44-2015.html",
+      "prefixo": "cnj-prov-44-2015",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2507",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 34,
+        "inc": 50,
+        "par": 28,
+        "ali": 9
+      },
+      "hrefs_originais_preservados": 41,
+      "ids_total": 121
+    },
+    {
+      "tipo": "provimento",
+      "numero": 50,
+      "ano": 2015,
+      "arquivo": "cnj/provimentos/provimento-50-2015.html",
+      "prefixo": "cnj-prov-50-2015",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2512",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 4
+      },
+      "hrefs_originais_preservados": 30,
+      "ids_total": 4
+    },
+    {
+      "tipo": "provimento",
+      "numero": 56,
+      "ano": 2016,
+      "arquivo": "cnj/provimentos/provimento-56-2016.html",
+      "prefixo": "cnj-prov-56-2016",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2518",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 5
+      },
+      "hrefs_originais_preservados": 17,
+      "ids_total": 5
+    },
+    {
+      "tipo": "provimento",
+      "numero": 62,
+      "ano": 2017,
+      "arquivo": "cnj/provimentos/provimento-62-2017.html",
+      "prefixo": "cnj-prov-62-2017",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2524",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 25,
+        "par": 59,
+        "inc": 4
+      },
+      "hrefs_originais_preservados": 122,
+      "ids_total": 88
+    },
+    {
+      "tipo": "provimento",
+      "numero": 63,
+      "ano": 2017,
+      "arquivo": "cnj/provimentos/provimento-63-2017.html",
+      "prefixo": "cnj-prov-63-2017",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2525",
+      "situacao": "Revogado",
+      "ancoras": {
+        "art": 23,
+        "par": 38,
+        "inc": 6
+      },
+      "hrefs_originais_preservados": 109,
+      "ids_total": 67
+    },
+    {
+      "tipo": "provimento",
+      "numero": 73,
+      "ano": 2018,
+      "arquivo": "cnj/provimentos/provimento-73-2018.html",
+      "prefixo": "cnj-prov-73-2018",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2623",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 10,
+        "par": 9,
+        "inc": 23
+      },
+      "hrefs_originais_preservados": 67,
+      "ids_total": 42
+    },
+    {
+      "tipo": "provimento",
+      "numero": 74,
+      "ano": 2018,
+      "arquivo": "cnj/provimentos/provimento-74-2018.html",
+      "prefixo": "cnj-prov-74-2018",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2637",
+      "situacao": "Revogado",
+      "ancoras": {
+        "art": 11,
+        "par": 11,
+        "inc": 10
+      },
+      "hrefs_originais_preservados": 14,
+      "ids_total": 32
+    },
+    {
+      "tipo": "provimento",
+      "numero": 79,
+      "ano": 2018,
+      "arquivo": "cnj/provimentos/provimento-79-2018.html",
+      "prefixo": "cnj-prov-79-2018",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2740",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 5,
+        "par": 8
+      },
+      "hrefs_originais_preservados": 13,
+      "ids_total": 13
+    },
+    {
+      "tipo": "provimento",
+      "numero": 81,
+      "ano": 2018,
+      "arquivo": "cnj/provimentos/provimento-81-2018.html",
+      "prefixo": "cnj-prov-81-2018",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2773",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 7,
+        "par": 2
+      },
+      "hrefs_originais_preservados": 12,
+      "ids_total": 9
+    },
+    {
+      "tipo": "provimento",
+      "numero": 82,
+      "ano": 2019,
+      "arquivo": "cnj/provimentos/provimento-82-2019.html",
+      "prefixo": "cnj-prov-82-2019",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/2973",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 4,
+        "inc": 2
+      },
+      "hrefs_originais_preservados": 17,
+      "ids_total": 6
+    },
+    {
+      "tipo": "provimento",
+      "numero": 89,
+      "ano": 2019,
+      "arquivo": "cnj/provimentos/provimento-89-2019.html",
+      "prefixo": "cnj-prov-89-2019",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/3131",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 38,
+        "inc": 54,
+        "par": 19,
+        "ali": 14
+      },
+      "hrefs_originais_preservados": 48,
+      "ids_total": 125
+    },
+    {
+      "tipo": "provimento",
+      "numero": 103,
+      "ano": 2020,
+      "arquivo": "cnj/provimentos/provimento-103-2020.html",
+      "prefixo": "cnj-prov-103-2020",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/3335",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 15,
+        "par": 10
+      },
+      "hrefs_originais_preservados": 36,
+      "ids_total": 25
+    },
+    {
+      "tipo": "provimento",
+      "numero": 107,
+      "ano": 2020,
+      "arquivo": "cnj/provimentos/provimento-107-2020.html",
+      "prefixo": "cnj-prov-107-2020",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/3362",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 7,
+        "par": 2
+      },
+      "hrefs_originais_preservados": 14,
+      "ids_total": 9
+    },
+    {
+      "tipo": "provimento",
+      "numero": 109,
+      "ano": 2020,
+      "arquivo": "cnj/provimentos/provimento-109-2020.html",
+      "prefixo": "cnj-prov-109-2020",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/3522",
+      "situacao": "Revogado",
+      "ancoras": {
+        "art": 21,
+        "par": 21,
+        "inc": 20
+      },
+      "hrefs_originais_preservados": 36,
+      "ids_total": 62
+    },
+    {
+      "tipo": "provimento",
+      "numero": 115,
+      "ano": 2021,
+      "arquivo": "cnj/provimentos/provimento-115-2021.html",
+      "prefixo": "cnj-prov-115-2021",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/3823",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 17,
+        "par": 17,
+        "inc": 4
+      },
+      "hrefs_originais_preservados": 36,
+      "ids_total": 38
+    },
+    {
+      "tipo": "provimento",
+      "numero": 122,
+      "ano": 2021,
+      "arquivo": "cnj/provimentos/provimento-122-2021.html",
+      "prefixo": "cnj-prov-122-2021",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/4066",
+      "situacao": "Alterado",
+      "ancoras": {
+        "art": 8,
+        "par": 11,
+        "inc": 4
+      },
+      "hrefs_originais_preservados": 42,
+      "ids_total": 23
+    },
+    {
+      "tipo": "provimento",
+      "numero": 124,
+      "ano": 2021,
+      "arquivo": "cnj/provimentos/provimento-124-2021.html",
+      "prefixo": "cnj-prov-124-2021",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/4280",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 7,
+        "par": 3
+      },
+      "hrefs_originais_preservados": 20,
+      "ids_total": 10
+    },
+    {
+      "tipo": "provimento",
+      "numero": 140,
+      "ano": 2023,
+      "arquivo": "cnj/provimentos/provimento-140-2023.html",
+      "prefixo": "cnj-prov-140-2023",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/4955",
+      "situacao": "Revogado",
+      "ancoras": {
+        "art": 12,
+        "par": 8,
+        "inc": 10
+      },
+      "hrefs_originais_preservados": 17,
+      "ids_total": 30
+    },
+    {
+      "tipo": "provimento",
+      "numero": 142,
+      "ano": 2023,
+      "arquivo": "cnj/provimentos/provimento-142-2023.html",
+      "prefixo": "cnj-prov-142-2023",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/5006",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 3,
+        "par": 4
+      },
+      "hrefs_originais_preservados": 9,
+      "ids_total": 7
+    },
+    {
+      "tipo": "provimento",
+      "numero": 144,
+      "ano": 2023,
+      "arquivo": "cnj/provimentos/provimento-144-2023.html",
+      "prefixo": "cnj-prov-144-2023",
+      "fonte_oficial": "https://atos.cnj.jus.br/atos/detalhar/5058",
+      "situacao": "Vigente",
+      "ancoras": {
+        "art": 9,
+        "inc": 29,
+        "ali": 5,
+        "par": 6
+      },
+      "hrefs_originais_preservados": 15,
+      "ids_total": 49
+    }
+  ],
+  "falhas": []
+}
