@@ -77,6 +77,7 @@ jobs:
                           tag['id'] = lid; used.add(lid); count += 1
               return count
 
+          original_hrefs = {}
           failures = []
           for n in manifest['normativos']:
               url = n['url']
@@ -86,6 +87,7 @@ jobs:
                   r = requests.get(url, timeout=90, headers=headers)
                   r.raise_for_status()
                   soup = BeautifulSoup(r.text, 'html.parser')
+                  original_hrefs[n['file']] = [a.get('href') for a in soup.find_all('a') if a.get('href') is not None]
                   for s in soup(['script','style','noscript']):
                       s.decompose()
                   count = anchor_doc(soup, n['id'])
@@ -97,6 +99,7 @@ jobs:
                   failures.append(f'{n["id"]}: {e}')
                   print(f'ERROR {n["id"]}: {e}')
 
+          Path('.original-hrefs.json').write_text(json.dumps(original_hrefs, ensure_ascii=False, indent=2), encoding='utf-8')
           if failures:
               print('\nBuild failures:')
               print('\n'.join(failures))
@@ -105,22 +108,27 @@ jobs:
       - name: Verify anchors-only output
         run: |
           python <<'PY'
-          import re
+          import json, re
+          from collections import Counter
           from pathlib import Path
           files = list(Path('constituicao').glob('*.html')) + list(Path('codigos').glob('*.html')) + list(Path('leis').glob('*.html')) + list(Path('decretos-lei').glob('*.html'))
+          original = json.loads(Path('.original-hrefs.json').read_text(encoding='utf-8'))
           if not files:
               raise SystemExit('No generated HTML files found')
           total_ids = 0
+          total_hrefs = 0
           for p in files:
               s = p.read_text(encoding='utf-8')
               ids = re.findall(r'\bid=["\']([^"\']+)["\']', s)
               hrefs = re.findall(r'\bhref=["\']([^"\']+)["\']', s)
-              if hrefs:
-                  raise SystemExit(f'Hyperlinks detected in {p}: {len(hrefs)} hrefs')
+              expected = original.get(p.name, [])
+              if Counter(hrefs) != Counter(expected):
+                  raise SystemExit(f'Hyperlinks changed in {p}: original={len(expected)}, generated={len(hrefs)}')
               if len(ids) != len(set(ids)):
                   raise SystemExit(f'Duplicate IDs in {p}')
               total_ids += len(ids)
-          print(f'VALID: {len(files)} files, {total_ids} IDs, 0 hrefs')
+              total_hrefs += len(hrefs)
+          print(f'VALID: {len(files)} files, {total_ids} IDs, {total_hrefs} original hrefs preserved, 0 new hrefs')
           PY
       - name: Commit generated HTML
         run: |
