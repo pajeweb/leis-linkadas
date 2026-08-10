@@ -1,0 +1,38 @@
+name: Build final audited package v14
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-final-audited-v14.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and final-audit
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml charset-normalizer openpyxl pyyaml
+          python <<'PY'
+          from pathlib import Path
+          import yaml, subprocess
+          y=Path('.github/workflows/build-final-audited-v13.yml').read_text(encoding='utf-8')
+          d=yaml.safe_load(y); run=d['jobs']['build']['steps'][2]['run']
+          a=run.index("python <<'PY'")+len("python <<'PY'"); b=run.rfind('\nPY')
+          wrapper=run[a:b].lstrip('\n')
+          inject='# v14 hardening patches applied to generated /tmp/build.py.\nstart=code.index(\'def decode_bytes\'); end=code.index(\'\\ndef fetch\',start)\ndecode = \'\'\'def decode_bytes(raw, headers=None):\n    declared=[]\n    ct=(headers or {}).get(\'content-type\',\'\')\n    m=re.search(r\'charset\\\\s*=\\\\s*["\\\\\']?([\\\\w.-]+)\',ct,re.I)\n    if m: declared.append(m.group(1))\n    head=raw[:16000]\n    for pat in [br\'<meta[^>]+charset\\\\s*=\\\\s*["\\\\\']?([\\\\w.-]+)\', br\'<meta[^>]+content=["\\\\\'][^"\\\\\']*charset=([\\\\w.-]+)\']:\n        mm=re.search(pat,head,re.I)\n        if mm:\n            try: declared.append(mm.group(1).decode(\'ascii\'))\n            except: pass\n    candidates=declared+[\'utf-8\',\'windows-1252\',\'iso-8859-1\']\n    best=from_bytes(raw).best()\n    if best and best.encoding: candidates.append(best.encoding)\n    seen=[]\n    for enc in candidates:\n        enc=(enc or \'\').strip().lower()\n        if enc and enc not in seen: seen.append(enc)\n    badseq=re.compile(r\'(Ã[\\\\x80-\\\\xbf]|Â[\\\\x80-\\\\xbfºª§]|â€|â€™|â€œ|â€�|ï»¿|\\\\ufffd)\')\n    cebad=re.compile(r\'[ŐőŰűŞşŢţĂăĄąĆćĘęŁłŃńŚśŹźŻż]\')\n    scored=[]\n    for enc in seen:\n        try: txt=raw.decode(enc)\n        except: continue\n        score=txt.count(\'\\\\ufffd\')*100000+len(badseq.findall(txt))*10000+len(cebad.findall(txt))*2000\n        if enc in [x.lower() for x in declared]: score-=100\n        scored.append((score,enc,txt))\n    if not scored: raise RuntimeError(\'Nenhuma decodificação possível\')\n    score,enc,txt=sorted(scored,key=lambda x:x[0])[0]\n    if \'\\\\ufffd\' in txt or badseq.search(txt) or cebad.search(txt):\n        raise RuntimeError(f\'Codificação suspeita: {enc}\')\n    return txt,enc\n\'\'\'\ncode=code[:start]+decode+code[end:]\ncode=code.replace("art_re=re.compile(r\'^\\\\\\\\s*Art(?:igo)?\\\\\\\\.?\\\\\\\\s*(\\\\\\\\d+(?:\\\\\\\\s*[-–—]\\\\\\\\s*[A-Z]{1,4})?)\\\\\\\\s*[º°o]?\\\\\\\\.?\',re.I)",\n                  "art_re=re.compile(r\'^\\\\\\\\s*(?i:Art(?:igo)?)\\\\\\\\.?\\\\\\\\s*(\\\\\\\\d+(?:\\\\\\\\s*[-–—]\\\\\\\\s*[A-Z])?)\\\\\\\\s*[º°o]?\\\\\\\\.?\')")\ncode=code.replace("par_re=re.compile(r\'^\\\\\\\\s*§\\\\\\\\s*(\\\\\\\\d+(?:\\\\\\\\s*[-–—]\\\\\\\\s*[A-Z]{1,4})?)\\\\\\\\s*[º°o]?\\\\\\\\.?\',re.I)",\n                  "par_re=re.compile(r\'^\\\\\\\\s*§\\\\\\\\s*(\\\\\\\\d+(?:\\\\\\\\s*[-–—]\\\\\\\\s*[A-Z])?)\\\\\\\\s*[º°o]?\\\\\\\\.?\')")\nneedle="              after_text=soup.get_text(\'\',strip=False)\\\\n"\ndedupe=\'\'\'              seen_ids={}\n              for el in soup.find_all(attrs={\'id\':True}):\n                  oid=el.get(\'id\')\n                  if not oid: continue\n                  n=seen_ids.get(oid,0)+1; seen_ids[oid]=n\n                  if n>1:\n                      cand=f\'{oid}-orig-occ-{n}\'\n                      while cand in seen_ids:\n                          n+=1; cand=f\'{oid}-orig-occ-{n}\'\n                      el[\'id\']=cand; seen_ids[cand]=1\n              after_text=soup.get_text(\'\',strip=False)\n\'\'\'\ncode=code.replace(needle,dedupe)\nmarker="          (ROOT/\'MANIFESTO-FONTES-AUDITADAS.json\').write_text"\naudit=\'\'\'          suspicious=re.compile(r\'(Ã[\\\\\\\\x80-\\\\\\\\xbf]|Â[\\\\\\\\x80-\\\\\\\\xbfºª§]|â€|â€™|â€œ|â€�|ï»¿|\\\\\\\\ufffd|[ŐőŰűŞşŢţĂăĄąĆćĘęŁłŃńŚśŹźŻż])\')\n          required={\'leis/lei-6015-1973.html\':[\'lei-6015-1973-art-1\',\'lei-6015-1973-art-167\'],\'leis/lei-6766-1979.html\':[\'lei-6766-1979-art-1\'],\'codigos/codigo-civil.html\':[\'cc-2002-art-1\',\'cc-2002-art-108\'],\'codigos/codigo-processo-civil.html\':[\'cpc-2015-art-1\',\'cpc-2015-art-319\'],\'constituicao/constituicao-federal.html\':[\'cf-1988-art-5\'],\'cnj/provimento-149-2023.html\':[\'cnj-prov-149-2023-art-1\',\'cnj-prov-149-2023-cnn-art-1\']}\n          normative=[p for p in ROOT.rglob(\'*.html\') if p.name!=\'index.html\']\n          if len(normative)!=74: raise RuntimeError(f\'Esperados 74 normativos; encontrados {len(normative)}\')\n          for p in normative:\n              txt=p.read_bytes().decode(\'utf-8\')\n              soup=BeautifulSoup(txt,\'lxml\'); visible=soup.get_text(\' \',strip=False)\n              if suspicious.search(visible): raise RuntimeError(f\'Caracteres suspeitos: {p}\')\n              ids=[e.get(\'id\') for e in soup.find_all(attrs={\'id\':True}) if e.get(\'id\')]\n              if len(ids)!=len(set(ids)): raise RuntimeError(f\'IDs duplicados: {p}\')\n          for rel,needed in required.items():\n              soup=BeautifulSoup((ROOT/rel).read_text(encoding=\'utf-8\'),\'lxml\')\n              ids={e.get(\'id\') for e in soup.find_all(attrs={\'id\':True}) if e.get(\'id\')}\n              for rid in needed:\n                  if rid not in ids: raise RuntimeError(f\'Âncora obrigatória ausente: {rid}\')\n          l6015=(ROOT/\'leis/lei-6015-1973.html\').read_text(encoding=\'utf-8\')\n          for badtxt in [\'Disposiçőes\',\'Art. 1ş\',\'legislaçăo\',\'Redaçăo\']:\n              if badtxt in l6015: raise RuntimeError(f\'Charset inválido Lei 6.015: {badtxt}\')\n          if \'lei-6015-1973-art-167-no\' in l6015: raise RuntimeError(\'Âncora art. 167-no inválida\')\n          print(\'AUDITORIA_FINAL_OK\',len(normative),\'normativos\')\n\'\'\'\ncode=code.replace(marker,audit+\'\\\\n\'+marker)\n'
+          wrapper=wrapper.replace("Path('/tmp/build.py').write_text(code,encoding='utf-8')",inject+"\nPath('/tmp/build.py').write_text(code,encoding='utf-8')")
+          Path('/tmp/wrapper-v14.py').write_text(wrapper,encoding='utf-8')
+          subprocess.run(['python','/tmp/wrapper-v14.py'],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote-leis-linkadas-final-auditado-v14
+          path: pacote-leis-linkadas-final-auditado.zip
+          if-no-files-found: error
+          retention-days: 30
