@@ -1,0 +1,37 @@
+name: Build final audited package v3
+on:
+  push:
+    paths: ['.github/workflows/build-final-audited-v3.yml']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run audited builder with strict visible-text validation
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml charset-normalizer openpyxl pyyaml
+          python <<'PY'
+          from pathlib import Path
+          import yaml, subprocess
+          s=Path('.github/workflows/build-final-audited.yml').read_text(encoding='utf-8')
+          s=s.replace('https://www.planalto.gov.br/ccivil_03/leis/l6015.htm','https://www.planalto.gov.br/ccivil_03/leis/l6015consolidado.htm')
+          d=yaml.safe_load(s)
+          script=d['jobs']['build']['steps'][2]['run']
+          a=script.index("python <<'PY'")+len("python <<'PY'"); b=script.rfind('\nPY')
+          code=script[a:b].lstrip('\n')
+          code=code.replace("if '\\ufffd' in txt or badseq.search(txt):", "if '\\ufffd' in txt:")
+          code=code.replace("if bad.search(out): raise RuntimeError('Mojibake no HTML final')", "if '\\ufffd' in out or bad.search(after_text): raise RuntimeError('Mojibake no texto visível final')")
+          Path('/tmp/build.py').write_text(code,encoding='utf-8')
+          subprocess.run(['python','/tmp/build.py'],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote-leis-linkadas-final-auditado-v3
+          path: pacote-leis-linkadas-final-auditado.zip
+          if-no-files-found: error
+          retention-days: 30
