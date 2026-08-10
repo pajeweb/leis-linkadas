@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leis Linkadas — Normativos</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;max-width:1100px;margin:40px auto;padding:0 20px;line-height:1.45;color:#222}
+h1{margin-bottom:.3rem} h2{margin-top:2rem;border-bottom:1px solid #ddd;padding-bottom:.35rem}
+input{width:100%;padding:.75rem;font-size:1rem;box-sizing:border-box;margin:1rem 0 1.5rem;border:1px solid #bbb;border-radius:6px}
+ul{padding-left:1.25rem} li{margin:.35rem 0} a{color:#0645ad;text-decoration:none} a:hover{text-decoration:underline}
+.meta{color:#666;font-size:.9rem;margin-left:.35rem}.status{font-size:.85rem;color:#555}.erro{color:#a00}.topo{background:#f6f7f8;padding:1rem 1.2rem;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="topo">
+<h1>Leis Linkadas</h1>
+<p>Índice dos normativos hospedados neste repositório. Clique no nome para abrir o texto ancorado.</p>
+<input id="busca" type="search" placeholder="Filtrar por nome, número ou tipo…" aria-label="Filtrar normativos">
+</div>
+
+<section>
+<h2>CNJ</h2>
+<ul id="cnj-lista">
+<li><a href="cnj/provimento-149-2023.html">Provimento CNJ nº 149/2023 — Código Nacional de Normas</a></li>
+</ul>
+</section>
+
+<section>
+<h2>Constituição, códigos, leis e decretos-lei</h2>
+<ul id="nucleo-lista"><li>Carregando…</li></ul>
+</section>
+
+<p id="erro" class="erro"></p>
+
+<script>
+const allItems=[];
+function addItem(ul, label, href, meta=''){
+  const li=document.createElement('li');
+  const a=document.createElement('a'); a.href=href; a.textContent=label;
+  li.appendChild(a);
+  if(meta){const s=document.createElement('span');s.className='meta';s.textContent=' — '+meta;li.appendChild(s)}
+  ul.appendChild(li); allItems.push({li,text:(label+' '+meta).toLowerCase()});
+}
+async function carregar(){
+  try{
+    const [nucleoResp,cnjResp]=await Promise.all([
+      fetch('VALIDACAO.json',{cache:'no-store'}),
+      fetch('MANIFESTO-CNJ-REFERENCIADOS.json',{cache:'no-store'})
+    ]);
+    if(!nucleoResp.ok||!cnjResp.ok) throw new Error('Não foi possível carregar os manifestos.');
+    const nucleo=await nucleoResp.json();
+    const cnj=await cnjResp.json();
+
+    const ulN=document.getElementById('nucleo-lista'); ulN.innerHTML='';
+    (Array.isArray(nucleo)?nucleo:[]).forEach(x=>addItem(ulN,x.title||x.id,x.file,`${x.anchors??0} âncoras`));
+
+    const ulC=document.getElementById('cnj-lista');
+    (cnj.itens||[]).forEach(x=>{
+      const tipo=x.tipo==='provimento'?'Provimento':(x.tipo==='resolucao-conjunta'?'Resolução Conjunta':'Resolução');
+      addItem(ulC,`${tipo} nº ${x.numero}/${x.ano}`,x.arquivo,`${x.situacao||''} · ${x.ids_total??0} IDs`);
+    });
+  }catch(e){document.getElementById('erro').textContent=e.message}
+}
+document.getElementById('busca').addEventListener('input',e=>{
+  const q=e.target.value.trim().toLowerCase();
+  allItems.forEach(x=>x.li.style.display=!q||x.text.includes(q)?'':'none');
+});
+carregar();
+</script>
+</body>
+</html>
