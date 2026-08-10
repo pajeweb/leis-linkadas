@@ -1,0 +1,72 @@
+name: Build final audited package v13
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-final-audited-v13.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run audited builder
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml charset-normalizer openpyxl pyyaml
+          python <<'PY'
+          from pathlib import Path
+          import yaml, subprocess
+          s=Path('.github/workflows/build-final-audited.yml').read_text(encoding='utf-8')
+          replacements={
+            'https://www.planalto.gov.br/ccivil_03/leis/l6015.htm':'https://www.planalto.gov.br/ccivil_03/leis/l6015consolidado.htm',
+            'https://www.planalto.gov.br/ccivil_03/leis/l6766.htm':'https://www.planalto.gov.br/ccivil_03/leis/l6766compilado.htm',
+            'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406.htm':'https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm',
+            'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm':'https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105compilada.htm',
+            'https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848.htm':'https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm',
+            'https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689.htm':'https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm',
+            'https://www.planalto.gov.br/ccivil_03/leis/l5172.htm':'https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm',
+            'https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911.htm':'https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911compilado.htm'
+          }
+          for a,b in replacements.items(): s=s.replace(a,b)
+          d=yaml.safe_load(s); script=d['jobs']['build']['steps'][2]['run']
+          a=script.index("python <<'PY'")+len("python <<'PY'"); b=script.rfind('\nPY'); code=script[a:b].lstrip('\n')
+          code=code.replace("if '\\ufffd' in txt or badseq.search(txt):", "if '\\ufffd' in txt:")
+          code=code.replace("if bad.search(out): raise RuntimeError('Mojibake no HTML final')", "if '\\ufffd' in out or bad.search(after_text): raise RuntimeError('Mojibake no texto visível final')")
+          code=code.replace("if 'texto consolidado' in label: score=0", "if re.fullmatch(r'\\(?\\s*texto consolidado\\s*\\)?',label): score=0")
+          code=code.replace("elif 'texto compilado' in label: score=1", "elif re.fullmatch(r'\\(?\\s*texto compilado\\s*\\)?',label): score=1")
+          code=code.replace("elif 'texto atualizado' in label: score=2", "elif re.fullmatch(r'\\(?\\s*texto atualizado\\s*\\)?',label): score=2")
+          # Retry official-source fetches to survive transient CNJ/Planalto timeouts.
+          start=code.index('def fetch(url):'); end=code.index('\ndef find_compiled_link',start)
+          fetch_lines=[
+            'def fetch(url):',
+            '    last=None',
+            '    for timeout in (30,60,90):',
+            '        try:',
+            '            r=session.get(url,timeout=timeout,allow_redirects=True)',
+            '            r.raise_for_status()',
+            '            txt,enc=decode_bytes(r.content,r.headers)',
+            '            return r.content,txt,enc,r.url',
+            '        except Exception as e:',
+            '            last=e',
+            '    raise last',
+            ''
+          ]
+          code=code[:start]+'\n'.join(fetch_lines)+code[end:]
+          start=code.index('def resolve_cnj(canonical):'); end=code.index('\nlegal=[',start)
+          lines=['def resolve_cnj(canonical):','    raw,txt,enc,final=fetch(canonical)',"    soup=BeautifulSoup(txt,'lxml')","    compiled_pdf=''","    for a in soup.find_all('a',href=True):","        if re.fullmatch(r'\\s*texto compilado\\s*',norm_ws(a.get_text(' ',strip=True)).lower()):","            compiled_pdf=urljoin(final,a['href']); break","    return {'canonical':canonical,'resolved':final,'label':'texto compilado exibido na página','raw':raw,'text':txt,'encoding':enc,'selection':'texto-compilado-cnj-exibido-no-html','compiled_pdf':compiled_pdf}",'']
+          code=code[:start]+'\n'.join(lines)+code[end:]
+          code=code.replace("soup.find_all(['p','li','td','blockquote','h1','h2','h3','h4','h5','h6'])", "soup.find_all(['p','div','li','td','blockquote','h1','h2','h3','h4','h5','h6'])")
+          Path('/tmp/build.py').write_text(code,encoding='utf-8')
+          subprocess.run(['python','/tmp/build.py'],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote-leis-linkadas-final-auditado-v13
+          path: pacote-leis-linkadas-final-auditado.zip
+          if-no-files-found: error
+          retention-days: 30
