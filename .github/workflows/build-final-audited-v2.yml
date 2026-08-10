@@ -1,0 +1,36 @@
+name: Build final audited package v2
+on:
+  push:
+    paths: ['.github/workflows/build-final-audited-v2.yml']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run audited builder with source correction
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml charset-normalizer openpyxl pyyaml
+          python <<'PY'
+          from pathlib import Path
+          import yaml, subprocess
+          p=Path('.github/workflows/build-final-audited.yml')
+          s=p.read_text(encoding='utf-8').replace('https://www.planalto.gov.br/ccivil_03/leis/l6015.htm','https://www.planalto.gov.br/ccivil_03/leis/l6015consolidado.htm')
+          d=yaml.safe_load(s)
+          script=d['jobs']['build']['steps'][2]['run']
+          a=script.index("python <<'PY'")+len("python <<'PY'")
+          b=script.rfind('\nPY')
+          code=script[a:b].lstrip('\n')
+          Path('/tmp/build.py').write_text(code,encoding='utf-8')
+          subprocess.run(['python','/tmp/build.py'],check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pacote-leis-linkadas-final-auditado-v2
+          path: pacote-leis-linkadas-final-auditado.zip
+          if-no-files-found: error
+          retention-days: 30
