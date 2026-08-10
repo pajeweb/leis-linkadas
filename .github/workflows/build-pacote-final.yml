@@ -1,0 +1,209 @@
+name: Build pacote final corrigido
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-pacote-final.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build corrected package
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml openpyxl
+          python <<'PY'
+          import json, re, hashlib, shutil, zipfile, html as htmlmod
+          from pathlib import Path
+          import requests
+          from bs4 import BeautifulSoup, UnicodeDammit
+          from openpyxl import Workbook
+          from openpyxl.styles import Font, PatternFill, Alignment
+          from openpyxl.utils import get_column_letter
+
+          ROOT=Path('pacote-final')
+          if ROOT.exists(): shutil.rmtree(ROOT)
+          ROOT.mkdir()
+          BASE='https://pajeweb.github.io/leis-linkadas/'
+          UA='Mozilla/5.0 (compatible; leis-linkadas/2.0; legal-document-archiver)'
+
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          def fetch_unicode(url):
+              r=requests.get(url,headers={'User-Agent':UA,'Accept':'text/html,application/xhtml+xml'},timeout=90)
+              r.raise_for_status()
+              raw=r.content
+              dammit=UnicodeDammit(raw,is_html=True)
+              text=dammit.unicode_markup
+              enc=dammit.original_encoding or 'unknown'
+              if text is None: raise RuntimeError(f'Falha de decodificação: {url}')
+              if '\ufffd' in text: raise RuntimeError(f'Caractere de substituição U+FFFD detectado: {url} / {enc}')
+              return raw,text,enc
+
+          def norm_token(s):
+              return re.sub(r'\s*[-–—]\s*','-',s.strip()).lower()
+
+          art_re=re.compile(r'^\s*Art(?:igo)?\.?\s*(\d+(?:\s*[-–—]\s*[A-Z]{1,4})?)\s*[º°o]?\.?',re.I)
+          par_re=re.compile(r'^\s*§\s*(\d+(?:\s*[-–—]\s*[A-Z]{1,4})?)\s*[º°o]?\.?',re.I)
+          pu_re=re.compile(r'^\s*Parágrafo\s+único\.?',re.I)
+          inc_re=re.compile(r'^\s*([IVXLCDM]+)\s*(?:[-–—]|\.)\s+',re.I)
+          ali_re=re.compile(r'^\s*([a-z])\)\s+',re.I)
+          item_re=re.compile(r'^\s*(\d+)\)\s+')
+
+          def add_anchors(text,prefix,prov149=False):
+              soup=BeautifulSoup(text,'lxml')
+              # UTF-8 metadata, preserving all existing links/content.
+              if soup.head:
+                  meta=soup.find('meta',attrs={'charset':True})
+                  if meta: meta['charset']='utf-8'
+                  else:
+                      m=soup.new_tag('meta'); m['charset']='utf-8'; soup.head.insert(0,m)
+              href_before=[a.get('href') for a in soup.find_all('a') if a.has_attr('href')]
+              existing={x.get('id') for x in soup.find_all(attrs={'id':True})}
+              used=set(x for x in existing if x)
+              counts={'art':0,'par':0,'inc':0,'ali':0,'item':0}
+              current_art=current_par=current_inc=None
+              occ={}
+              in_cnn=not prov149
+
+              def unique(base):
+                  occ[base]=occ.get(base,0)+1
+                  if base not in used and occ[base]==1:
+                      used.add(base); return base
+                  n=max(2,occ[base])
+                  while f'{base}-occ-{n}' in used: n+=1
+                  x=f'{base}-occ-{n}'; used.add(x); return x
+
+              candidates=soup.find_all(['p','li','td','blockquote','h1','h2','h3','h4','h5','h6'])
+              for tag in candidates:
+                  txt=' '.join(tag.stripped_strings)
+                  if not txt: continue
+                  up=txt.upper()
+                  if prov149 and ('CÓDIGO NACIONAL DE NORMAS' in up or 'CÓDIGO NACIONAL DE NORMAS DA CORREGEDORIA NACIONAL DE JUSTIÇA' in up):
+                      in_cnn=True
+                  pfx=(prefix+'-cnn') if (prov149 and in_cnn) else prefix
+                  m=art_re.match(txt)
+                  kind=None; base=None
+                  if m:
+                      current_art=norm_token(m.group(1)); current_par=current_inc=None
+                      base=f'{pfx}-art-{current_art}'; kind='art'
+                  else:
+                      m=pu_re.match(txt)
+                      if m and current_art:
+                          current_par='unico'; current_inc=None; base=f'{pfx}-art-{current_art}-par-unico'; kind='par'
+                      else:
+                          m=par_re.match(txt)
+                          if m and current_art:
+                              current_par=norm_token(m.group(1)); current_inc=None; base=f'{pfx}-art-{current_art}-par-{current_par}'; kind='par'
+                          else:
+                              m=inc_re.match(txt)
+                              if m and current_art:
+                                  current_inc=m.group(1).lower()
+                                  base=f'{pfx}-art-{current_art}'
+                                  if current_par: base+=f'-par-{current_par}'
+                                  base+=f'-inc-{current_inc}'; kind='inc'
+                              else:
+                                  m=ali_re.match(txt)
+                                  if m and current_art:
+                                      base=f'{pfx}-art-{current_art}'
+                                      if current_par: base+=f'-par-{current_par}'
+                                      if current_inc: base+=f'-inc-{current_inc}'
+                                      base+=f'-ali-{m.group(1).lower()}'; kind='ali'
+                                  else:
+                                      m=item_re.match(txt)
+                                      if m and current_art and (current_inc or current_par):
+                                          base=f'{pfx}-art-{current_art}'
+                                          if current_par: base+=f'-par-{current_par}'
+                                          if current_inc: base+=f'-inc-{current_inc}'
+                                          base+=f'-item-{m.group(1)}'; kind='item'
+                  if base:
+                      aid=unique(base)
+                      # Do not overwrite official IDs: insert a neutral span anchor.
+                      span=soup.new_tag('span'); span['id']=aid; tag.insert(0,span)
+                      counts[kind]+=1
+              href_after=[a.get('href') for a in soup.find_all('a') if a.has_attr('href')]
+              if href_before != href_after:
+                  raise RuntimeError('Lista de hyperlinks mudou durante o processamento')
+              out='<!doctype html>\n'+str(soup)
+              if '\ufffd' in out: raise RuntimeError('U+FFFD no HTML final')
+              ids=[x.get('id') for x in soup.find_all(attrs={'id':True}) if x.get('id')]
+              if len(ids)!=len(set(ids)): raise RuntimeError('IDs duplicados no HTML final')
+              return out,counts,len(href_before),len(ids)
+
+          # Núcleo legal: fontes oficiais atuais. O arquivo VALIDACAO contém URLs de Planalto escolhidas para cada diploma.
+          val=json.load(open('VALIDACAO.json',encoding='utf-8'))
+          legal=[]
+          for x in val:
+              legal.append({'title':x['title'],'source':x['source'],'file':x['file'],'prefix':x['id'],'situacao':'Texto oficial atual'})
+
+          # Atos CNJ referenciados: fontes oficiais constantes do manifesto já auditado.
+          cnjman=json.load(open('MANIFESTO-CNJ-REFERENCIADOS.json',encoding='utf-8'))
+          cnj=[]
+          for x in cnjman['itens']:
+              title=('Resolução Conjunta' if x['tipo']=='resolucao-conjunta' else ('Resolução' if x['tipo']=='resolucao' else 'Provimento'))+f" {x['numero']}/{x['ano']}"
+              cnj.append({'title':title,'source':x['fonte_oficial'],'file':x['arquivo'],'prefix':x['prefixo'],'situacao':x.get('situacao','')})
+
+          # Provimento 149/CNN: página oficial atual, cujo texto exibido pelo CNJ é atualizado/compilado.
+          prov149={'title':'Provimento CNJ 149/2023 + CNN/CN/CNJ-Extra','source':'https://atos.cnj.jus.br/atos/detalhar/5243','file':'cnj/provimento-149-2023.html','prefix':'cnj-prov-149-2023','situacao':'Texto oficial CNJ atual','prov149':True}
+
+          items=[prov149]+cnj+legal
+          report=[]
+          for i,x in enumerate(items,1):
+              print(f'[{i}/{len(items)}] {x["title"]}')
+              raw,text,enc=fetch_unicode(x['source'])
+              out,counts,hrefs,ids=add_anchors(text,x['prefix'],x.get('prov149',False))
+              dest=ROOT/x['file']; dest.parent.mkdir(parents=True,exist_ok=True)
+              dest.write_text(out,encoding='utf-8',newline='\n')
+              report.append({**x,'encoding_origem':enc,'bytes_origem':len(raw),'sha256_origem':sha(raw),'sha256_html_utf8':sha(out.encode('utf-8')),'ancoras':counts,'ids_total':ids,'hrefs_preservados':hrefs,'url_pages':BASE+x['file']})
+
+          # Index clicável estático.
+          groups={}
+          for r in report:
+              top=r['file'].split('/')[0]
+              groups.setdefault(top,[]).append(r)
+          labels={'cnj':'CNJ','constituicao':'Constituição','codigos':'Códigos','leis':'Leis','decretos-lei':'Decretos-Lei','decretos':'Decretos'}
+          cards=[]
+          for g,rows in groups.items():
+              lis=''.join(f'<li><a href="{htmlmod.escape(r["file"])}">{htmlmod.escape(r["title"])}</a><small>{htmlmod.escape(r.get("situacao", ""))}</small></li>' for r in sorted(rows,key=lambda z:z['title']))
+              cards.append(f'<section><h2>{labels.get(g,g.title())}</h2><ul>{lis}</ul></section>')
+          index='''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Leis Linkadas</title><style>body{font-family:system-ui,Arial;max-width:1100px;margin:35px auto;padding:0 20px;color:#172033}h1{margin-bottom:4px}input{width:100%;box-sizing:border-box;padding:12px;margin:20px 0;border:1px solid #bbb;border-radius:8px}section{margin:28px 0}li{margin:7px 0}a{color:#0645ad}small{display:block;color:#666}</style></head><body><h1>Normativos ancorados</h1><p>Textos oficiais com âncoras estáveis para deep linking.</p><input id="q" placeholder="Filtrar normativos...">'''+''.join(cards)+'''<script>q.oninput=()=>{const s=q.value.toLowerCase();document.querySelectorAll('li').forEach(li=>li.style.display=li.innerText.toLowerCase().includes(s)?'':'none')}</script></body></html>'''
+          (ROOT/'index.html').write_text(index,encoding='utf-8')
+
+          (ROOT/'MANIFESTO.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          readme='''PACOTE LEIS LINKADAS — VERSÃO CORRIGIDA\n\n- HTMLs obtidos novamente das fontes oficiais.\n- Bytes de origem decodificados com detector de charset antes do parse.\n- Saída padronizada em UTF-8 com <meta charset="utf-8">.\n- O build falha se aparecer o caractere de substituição U+FFFD.\n- Hyperlinks preexistentes são preservados na mesma ordem; nenhum hyperlink novo é criado nos normativos.\n- Apenas âncoras/IDs são acrescentadas, sem sobrescrever IDs oficiais.\n- Foram usados os textos oficiais atuais/compilados disponibilizados nas páginas indicadas no MANIFESTO.json.\n- index.html fornece a lista clicável para a raiz do GitHub Pages.\n\nAo publicar, copie o CONTEÚDO desta pasta para a raiz do repositório.\n'''
+          (ROOT/'LEIA-ME.txt').write_text(readme,encoding='utf-8')
+
+          # Planilha de controle/linkagem.
+          wb=Workbook(); ws=wb.active; ws.title='Normativos'
+          headers=['Normativo','Situação','Arquivo','URL GitHub Pages','Prefixo','Exemplo Art. 1','Fonte oficial','Encoding origem','Âncoras art.','Âncoras par.','Âncoras inc.','Âncoras alínea','Âncoras item','Hrefs preservados']
+          ws.append(headers)
+          for r in report:
+              p=r['prefix']+('-cnn' if r.get('prov149') else '')
+              ws.append([r['title'],r.get('situacao',''),r['file'],r['url_pages'],r['prefix'],r['url_pages']+'#'+p+'-art-1',r['source'],r['encoding_origem'],r['ancoras']['art'],r['ancoras']['par'],r['ancoras']['inc'],r['ancoras']['ali'],r['ancoras']['item'],r['hrefs_preservados']])
+          for c in range(1,len(headers)+1):
+              ws.cell(1,c).font=Font(bold=True); ws.cell(1,c).fill=PatternFill('solid',fgColor='D9EAF7'); ws.cell(1,c).alignment=Alignment(wrap_text=True)
+          ws.freeze_panes='A2'; ws.auto_filter.ref=ws.dimensions
+          widths=[40,16,45,65,28,85,70,18,12,12,12,14,12,16]
+          for i,w in enumerate(widths,1): ws.column_dimensions[get_column_letter(i)].width=w
+          wb.save(ROOT/'planilha-links.xlsx')
+
+          # Package zip containing files at repository root (not a wrapping folder).
+          zpath=Path('pacote-leis-linkadas-corrigido.zip')
+          if zpath.exists(): zpath.unlink()
+          with zipfile.ZipFile(zpath,'w',zipfile.ZIP_DEFLATED) as z:
+              for p in ROOT.rglob('*'):
+                  if p.is_file(): z.write(p,p.relative_to(ROOT))
+          print('OK',zpath,zpath.stat().st_size,'bytes',len(report),'normativos')
+          PY
+      - name: Upload corrected package
+        uses: actions/upload-artifact@v4
+        with:
+          name: pacote-leis-linkadas-corrigido
+          path: pacote-leis-linkadas-corrigido.zip
+          if-no-files-found: error
+          retention-days: 30
