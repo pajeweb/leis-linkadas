@@ -33,76 +33,60 @@ jobs:
               return re.sub(r'\s+', ' ', s.replace('\xa0', ' ')).strip()
 
           def slug(s):
-              s = s.lower().replace('º', '').replace('°', '')
               trans = str.maketrans('áàãâéêíóôõúç', 'aaaaeeiooouc')
-              s = s.translate(trans)
-              return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
+              return re.sub(r'[^a-z0-9]+', '-', s.lower().replace('º','').replace('°','').translate(trans)).strip('-')
 
           def anchor_doc(soup, prefix):
               used = {t.get('id') for t in soup.find_all(True) if t.get('id')}
               count = 0
               current = None
-              tags = soup.find_all(['p','div','li','td','blockquote','h1','h2','h3','h4','h5'])
-              for tag in tags:
+              for tag in soup.find_all(['p','div','li','td','blockquote','h1','h2','h3','h4','h5']):
                   txt = norm(tag.get_text(' ', strip=True))
                   if not txt:
                       continue
-
                   m = re.match(r'^Art\.?\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?', txt, re.I)
                   if m:
-                      current = m.group(1).replace('–', '-').upper()
+                      current = m.group(1).replace('–','-').upper()
                       aid = f'{prefix}-art-{slug(current)}'
                       if aid not in used:
-                          tag['id'] = aid
-                          used.add(aid)
-                          count += 1
+                          tag['id'] = aid; used.add(aid); count += 1
                       continue
-
                   if current is None:
                       continue
-
                   m = re.match(r'^§\s*(\d+(?:[-–][A-Z])?)\s*[º°.]?', txt, re.I)
                   if m:
                       pid = f'{prefix}-art-{slug(current)}-par-{slug(m.group(1))}'
                       if pid not in used:
-                          tag['id'] = pid
-                          used.add(pid)
-                          count += 1
+                          tag['id'] = pid; used.add(pid); count += 1
                       continue
-
                   if re.match(r'^Parágrafo único\b', txt, re.I):
                       pid = f'{prefix}-art-{slug(current)}-par-unico'
                       if pid not in used:
-                          tag['id'] = pid
-                          used.add(pid)
-                          count += 1
+                          tag['id'] = pid; used.add(pid); count += 1
                       continue
-
                   m = re.match(r'^([IVXLCDM]+)\s*[—–-]\s+', txt, re.I)
                   if m:
                       iid = f'{prefix}-art-{slug(current)}-inc-{m.group(1).lower()}'
                       if iid not in used:
-                          tag['id'] = iid
-                          used.add(iid)
-                          count += 1
+                          tag['id'] = iid; used.add(iid); count += 1
                       continue
-
                   m = re.match(r'^([a-z])\)\s+', txt, re.I)
                   if m:
                       lid = f'{prefix}-art-{slug(current)}-ali-{m.group(1).lower()}'
                       if lid not in used:
-                          tag['id'] = lid
-                          used.add(lid)
-                          count += 1
+                          tag['id'] = lid; used.add(lid); count += 1
               return count
 
           failures = []
           for n in manifest['normativos']:
+              url = n['url']
+              if n['id'] == 'dl-911-1969':
+                  url = 'https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911compilado.htm'
               try:
-                  r = requests.get(n['url'], timeout=90, headers=headers)
+                  r = requests.get(url, timeout=90, headers=headers)
                   r.raise_for_status()
                   soup = BeautifulSoup(r.text, 'html.parser')
-                  for s in soup(['script', 'style', 'noscript']):
+                  for s in soup(['script','style','noscript']):
                       s.decompose()
                   count = anchor_doc(soup, n['id'])
                   out = Path(n['dir']) / n['file']
@@ -132,7 +116,7 @@ jobs:
               ids = re.findall(r'\bid=["\']([^"\']+)["\']', s)
               hrefs = re.findall(r'\bhref=["\']([^"\']+)["\']', s)
               if hrefs:
-                  raise SystemExit(f'New hyperlinks detected in {p}: {len(hrefs)} hrefs')
+                  raise SystemExit(f'Hyperlinks detected in {p}: {len(hrefs)} hrefs')
               if len(ids) != len(set(ids)):
                   raise SystemExit(f'Duplicate IDs in {p}')
               total_ids += len(ids)
@@ -141,7 +125,7 @@ jobs:
       - name: Commit generated HTML
         run: |
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '41898282+github-actions[bot].com'
           git add constituicao codigos leis decretos-lei
           git diff --cached --quiet || git commit -m 'Build Núcleo 1 normativos with anchors only'
           git push
