@@ -1,0 +1,332 @@
+[
+  {
+    "id": "cf-1988",
+    "title": "Constituição Federal de 1988",
+    "source": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+    "file": "constituicao/constituicao-federal.html",
+    "anchors": 2673,
+    "hrefs_preserved": 2585,
+    "source_sha256": "029965231b5ee3e9efeefced175137f2f11c259211aa4039677e707bab4f1442",
+    "output_sha256": "511bd22b5332a66192babb7f9796919538986cf5a57dfdbf14369d97d868f652"
+  },
+  {
+    "id": "cc-2002",
+    "title": "Código Civil — Lei 10.406/2002",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/2002/l10406compilada.htm",
+    "file": "codigos/codigo-civil.html",
+    "anchors": 1626,
+    "hrefs_preserved": 1189,
+    "source_sha256": "decc553de9aaf92b2abe0374eb359a956b4c635d23fb555b88ba77e57f887c59",
+    "output_sha256": "0a8ab3b34bbf36871c63d3db2be26a5b46f414119ee2a8652332767589f9de6c"
+  },
+  {
+    "id": "cpc-2015",
+    "title": "Código de Processo Civil — Lei 13.105/2015",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105compilada.htm",
+    "file": "codigos/codigo-processo-civil.html",
+    "anchors": 3513,
+    "hrefs_preserved": 518,
+    "source_sha256": "4b81af6c91e2f937a83041b447c0a5e7c032c46e13a2dbd71cdda5a24ab5c663",
+    "output_sha256": "b47ecf723c931c2177347d3469723e8ed63392af2a849ec18a7ca17afecd6e74"
+  },
+  {
+    "id": "cp-1940",
+    "title": "Código Penal — Decreto-Lei 2.848/1940",
+    "source": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm",
+    "file": "codigos/codigo-penal.html",
+    "anchors": 1217,
+    "hrefs_preserved": 1310,
+    "source_sha256": "1309f81452adf8af28995cc5346a292569e6ce3e4425ec2615efca13033bb861",
+    "output_sha256": "c0e69ef5b49fa1e607229b1391dce08b0373792a0aa84a40c1cac985dc587ff7"
+  },
+  {
+    "id": "cpp-1941",
+    "title": "Código de Processo Penal — Decreto-Lei 3.689/1941",
+    "source": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del3689compilado.htm",
+    "file": "codigos/codigo-processo-penal.html",
+    "anchors": 2010,
+    "hrefs_preserved": 1436,
+    "source_sha256": "446cb31dea77252d40312ac46b00883db974a993ec377e88f82d32261e3b4254",
+    "output_sha256": "5e046bf076cb694093b0156e2aa1234a33df0eff53b8bbce853e47bf0a2978a1"
+  },
+  {
+    "id": "ctn-1966",
+    "title": "Código Tributário Nacional — Lei 5.172/1966",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm",
+    "file": "codigos/codigo-tributario-nacional.html",
+    "anchors": 629,
+    "hrefs_preserved": 169,
+    "source_sha256": "727eb158fe6420cc2cdd6e6a4a214cd0f3d9e7246946d1d94f1345567f8af6ef",
+    "output_sha256": "9d46a7d9b8a3e645580c5891507181c0236550604212cf176d23d08916804336"
+  },
+  {
+    "id": "lei-6015-1973",
+    "title": "Lei 6.015/1973 — Registros Públicos",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l6015compilada.htm",
+    "file": "leis/lei-6015-1973.html",
+    "anchors": 908,
+    "hrefs_preserved": 884,
+    "source_sha256": "17546d4d24f840839809e24359281897f52e9064d98823ba6f13d5905ff58719",
+    "output_sha256": "20d4c78951af286e4c779cdb53edba931e2269542fc815aec5f7632ee7716494"
+  },
+  {
+    "id": "lei-6766-1979",
+    "title": "Lei 6.766/1979 — Parcelamento do Solo",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l6766.htm",
+    "file": "leis/lei-6766-1979.html",
+    "anchors": 150,
+    "hrefs_preserved": 160,
+    "source_sha256": "38f090e747e76ccb06e642f7877157a73648df309e9590121ae4ff6795b9b04f",
+    "output_sha256": "bc9340a39ddf0d128f4cca888395caff70707fc097ed7dfcbe054e642d3580a0"
+  },
+  {
+    "id": "lei-4591-1964",
+    "title": "Lei 4.591/1964 — Incorporações e Condomínios",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l4591.htm",
+    "file": "leis/lei-4591-1964.html",
+    "anchors": 474,
+    "hrefs_preserved": 437,
+    "source_sha256": "78aa74caf1ed55c0199bdcbdae07bac7dfd3b34abe698454cd3e0dbde7f84d8a",
+    "output_sha256": "36db373c0ea7de97b01ab3bec8619e680bd1a0ade82c03d6ca69fb610e5b996a"
+  },
+  {
+    "id": "lei-8935-1994",
+    "title": "Lei 8.935/1994 — Serviços Notariais e de Registro",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l8935.htm",
+    "file": "leis/lei-8935-1994.html",
+    "anchors": 182,
+    "hrefs_preserved": 61,
+    "source_sha256": "dbe3b024d93aa6532e5ffaad170b995881c503babede87431c3d73ea3ba82e73",
+    "output_sha256": "d8680a32bc9b85ff826b0bb0ded028a4172f45f9f93f4fceffef0cd03103f960"
+  },
+  {
+    "id": "lei-9492-1997",
+    "title": "Lei 9.492/1997 — Protesto",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l9492.htm",
+    "file": "leis/lei-9492-1997.html",
+    "anchors": 143,
+    "hrefs_preserved": 50,
+    "source_sha256": "08ed978656bf2972b7b79c0204b139fc61a19456fdccb46a1654f2507dfd8902",
+    "output_sha256": "a08b00b11d838fdeb9db8fd01bf3cc80b42abca49b7c20ece28776f69558d0b5"
+  },
+  {
+    "id": "lei-12846-2013",
+    "title": "Lei 12.846/2013",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2013/lei/l12846.htm",
+    "file": "leis/lei-12846-2013.html",
+    "anchors": 125,
+    "hrefs_preserved": 99,
+    "source_sha256": "c1a6e13096acca58067eef9b6faacf6d578934f20f104a4abe93609cac0e7fee",
+    "output_sha256": "3e2d393077c24750be652a739b1c8b655b39582d3bb0f9696703eb7b4d291427"
+  },
+  {
+    "id": "lei-13709-2018",
+    "title": "LGPD — Lei 13.709/2018",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm",
+    "file": "leis/lei-13709-2018.html",
+    "anchors": 429,
+    "hrefs_preserved": 194,
+    "source_sha256": "56ea0728933fdabfd58bb7b81eaf346771ca95004f567c338529bf17fc632c63",
+    "output_sha256": "ed809a2fa6fe6f345ce82c809746800787c3929e5d2e0cda7d9ad953e42f3b86"
+  },
+  {
+    "id": "lei-13146-2015",
+    "title": "Lei 13.146/2015 — Estatuto da Pessoa com Deficiência",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13146.htm",
+    "file": "leis/lei-13146-2015.html",
+    "anchors": 505,
+    "hrefs_preserved": 174,
+    "source_sha256": "1a9cb97b67f5b632576ec904dfae7cc3735a1ac8a5a521a5c0851399a022a42c",
+    "output_sha256": "de045d4f07aec6f5226dd07dd0a71ebab2b2e0f4f336863db621d02465641db9"
+  },
+  {
+    "id": "lei-10257-2001",
+    "title": "Lei 10.257/2001 — Estatuto da Cidade",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/leis_2001/l10257.htm",
+    "file": "leis/lei-10257-2001.html",
+    "anchors": 282,
+    "hrefs_preserved": 108,
+    "source_sha256": "b98bdae25b3d0cb143069a0f311a53da96e0a47c6e7981ba81e4ade34e6d6831",
+    "output_sha256": "9beb14054a82f2a1c276247b49109a36e50f57f38ffa0eadca33e2207cd7f40f"
+  },
+  {
+    "id": "lei-13089-2015",
+    "title": "Lei 13.089/2015 — Estatuto da Metrópole",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13089.htm",
+    "file": "leis/lei-13089-2015.html",
+    "anchors": 114,
+    "hrefs_preserved": 73,
+    "source_sha256": "22b737f1ae7f15323a7c12f007dd44067bdb402a0bebf2ae1426354ab0bf688d",
+    "output_sha256": "4621370fe58cf66dc5d954934d0647ff14a3bfe3f3887fc0be86fc3e0087060e"
+  },
+  {
+    "id": "lei-13874-2019",
+    "title": "Lei 13.874/2019 — Liberdade Econômica",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13874.htm",
+    "file": "leis/lei-13874-2019.html",
+    "anchors": 182,
+    "hrefs_preserved": 143,
+    "source_sha256": "9881470f43f77cc7e6697c78d919f9405f07180ab002a4674f6eb56efc392fc4",
+    "output_sha256": "68f8b904ee68c3b98e7809cbcbd2767a5c487826f81f923cb9e801926c34a045"
+  },
+  {
+    "id": "lei-8245-1991",
+    "title": "Lei 8.245/1991 — Locações",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l8245.htm",
+    "file": "leis/lei-8245-1991.html",
+    "anchors": 318,
+    "hrefs_preserved": 74,
+    "source_sha256": "48c020d80fa88908c4148d18f5fb48e6d1868e2a76b9041e0867dee90b921a26",
+    "output_sha256": "c64e9682b0a2bf66c41dc8352039468ccd870907a58cc43f63eceb760e281803"
+  },
+  {
+    "id": "lei-8009-1990",
+    "title": "Lei 8.009/1990 — Bem de Família",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l8009.htm",
+    "file": "leis/lei-8009-1990.html",
+    "anchors": 20,
+    "hrefs_preserved": 11,
+    "source_sha256": "57405fbcdb5820dec93b8976f1dc36f0564076e2efead43e266da77930efda9d",
+    "output_sha256": "3aed4e1d979ff9ad441c1a7b67b9c44631134ab6c8c5b9b5fbd93f63ca1cc85a"
+  },
+  {
+    "id": "lei-9099-1995",
+    "title": "Lei 9.099/1995 — Juizados Especiais",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l9099.htm",
+    "file": "leis/lei-9099-1995.html",
+    "anchors": 239,
+    "hrefs_preserved": 43,
+    "source_sha256": "99b4f4a927dd294b7efda9332c32f76ff2de981690b62ca62f006c64b08c4d84",
+    "output_sha256": "2a9185f78176e99caa1d3198d2d075d3c60d306bb9f0b390dd2eb20da6b6da44"
+  },
+  {
+    "id": "lei-9514-1997",
+    "title": "Lei 9.514/1997 — Alienação Fiduciária e SFI",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l9514.htm",
+    "file": "leis/lei-9514-1997.html",
+    "anchors": 216,
+    "hrefs_preserved": 288,
+    "source_sha256": "705baa3b9c4bc523f7b1c3ba615a003fd28eaba842bfe48baca0f15be5972819",
+    "output_sha256": "6a5269491a1cae73212a71edd565a3605671713099c65b69d27e0081f7e22017"
+  },
+  {
+    "id": "lei-14711-2023",
+    "title": "Lei 14.711/2023 — Marco Legal das Garantias",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14711.htm",
+    "file": "leis/lei-14711-2023.html",
+    "anchors": 197,
+    "hrefs_preserved": 167,
+    "source_sha256": "ebe0387ca25eac73cd8fee9a5c4d9626afcb7705865708751db98028ab563a91",
+    "output_sha256": "08b4f6911c6564650a1e8035858890560e7f7fce7579c5f3304797699722f227"
+  },
+  {
+    "id": "lei-4380-1964",
+    "title": "Lei 4.380/1964 — SFH",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l4380.htm",
+    "file": "leis/lei-4380-1964.html",
+    "anchors": 357,
+    "hrefs_preserved": 336,
+    "source_sha256": "a81d64ee85aae7647b327dea1f0533ddf69f04f6777c4431d2b6a6668e1974f8",
+    "output_sha256": "e6dccc0c34a0da16d06310739f4a2c98fcf03f905b3c857fd981b6e6484398c6"
+  },
+  {
+    "id": "lei-8429-1992",
+    "title": "Lei 8.429/1992 — Improbidade Administrativa",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l8429compilada.htm",
+    "file": "leis/lei-8429-1992.html",
+    "anchors": 238,
+    "hrefs_preserved": 327,
+    "source_sha256": "52de09d7864fe742109b55505a213c01fc52371c0cb8fc4d4941e5d85f26c107",
+    "output_sha256": "1de9bda9f4c29ce635f5fcc9ba247252b9a3b15fe564ced11917eacb13f91199"
+  },
+  {
+    "id": "lei-12527-2011",
+    "title": "Lei 12.527/2011 — LAI",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm",
+    "file": "leis/lei-12527-2011.html",
+    "anchors": 227,
+    "hrefs_preserved": 46,
+    "source_sha256": "daaa380b000e27da1a68533025453777bbf5a4b40f491302fe418d37bca9319a",
+    "output_sha256": "292f72370cafc15db7d91bcfbfa2aa377e6e30057161c1352be09b195cac5cde"
+  },
+  {
+    "id": "lei-13460-2017",
+    "title": "Lei 13.460/2017 — Direitos do Usuário de Serviço Público",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13460.htm",
+    "file": "leis/lei-13460-2017.html",
+    "anchors": 129,
+    "hrefs_preserved": 25,
+    "source_sha256": "bb08b8c9c413680d0a6707cddc1fc505339d1ed0c05dc7cfa8cbeac906ed8d88",
+    "output_sha256": "457cccd99388d00947dda5c11248ad30573830455e92e906631f6dd4b4a7b8bb"
+  },
+  {
+    "id": "lei-9784-1999",
+    "title": "Lei 9.784/1999 — Processo Administrativo Federal",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l9784.htm",
+    "file": "leis/lei-9784-1999.html",
+    "anchors": 219,
+    "hrefs_preserved": 51,
+    "source_sha256": "ad96fe555609ec5e150d4ea170a8d8af2dc67f11fe36d0a38185cd2a19009475",
+    "output_sha256": "6f66d63a79cff36228b0cdfe86119e6adbe7cee42cf24d3883270cff2391aaad"
+  },
+  {
+    "id": "lei-10169-2000",
+    "title": "Lei 10.169/2000 — Emolumentos",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l10169.htm",
+    "file": "leis/lei-10169-2000.html",
+    "anchors": 31,
+    "hrefs_preserved": 17,
+    "source_sha256": "86e9b62557c37b6450065908e0d684e27e6f49de186240167c915d6d70f5c88e",
+    "output_sha256": "60c45ee5064845699680de4690b7f21c55c57df3efafae392e47bd07d12c375f"
+  },
+  {
+    "id": "lei-14133-2021",
+    "title": "Lei 14.133/2021 — Licitações e Contratos",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm",
+    "file": "leis/lei-14133-2021.html",
+    "anchors": 1262,
+    "hrefs_preserved": 352,
+    "source_sha256": "0d8878ef740a0cfa7d6ff6daa07e64232e4a23a11658191d997a987913798ab1",
+    "output_sha256": "96747dc46a4379ebe10859621cbf7990665fc1a5dc1882f62afed0da57055197"
+  },
+  {
+    "id": "lei-14382-2022",
+    "title": "Lei 14.382/2022 — SERP",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2022/lei/l14382.htm",
+    "file": "leis/lei-14382-2022.html",
+    "anchors": 180,
+    "hrefs_preserved": 238,
+    "source_sha256": "b0ad26210101db2a36eb5e54364d8a82ccce7c4c48c7d1ff5cd67b6b8eb878b8",
+    "output_sha256": "315c85536027ebf78274ae0629955fd43220fd396318afcb80d0df1d5523978f"
+  },
+  {
+    "id": "lei-13465-2017",
+    "title": "Lei 13.465/2017 — Regularização Fundiária",
+    "source": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13465.htm",
+    "file": "leis/lei-13465-2017.html",
+    "anchors": 613,
+    "hrefs_preserved": 431,
+    "source_sha256": "74a7123b6f90e4258cb5cceb5c4de0ebe03d8b88318d4c9c6c302c7d80ea8926",
+    "output_sha256": "1c37f562bbead4fa1f77df27a8ebf2e9a7e890b3c4cb9e12b6796df645b834c0"
+  },
+  {
+    "id": "dl-911-1969",
+    "title": "Decreto-Lei 911/1969",
+    "source": "https://www.planalto.gov.br/ccivil_03/decreto-lei/1965-1988/del0911compilado.htm",
+    "file": "decretos-lei/dl-911-1969.html",
+    "anchors": 67,
+    "hrefs_preserved": 78,
+    "source_sha256": "dde4355f7b7559cddea60e8abfb63f2d3151275195477a9f13285f371a2fa00b",
+    "output_sha256": "055ef11075cbaefe9488240fd83318735441464d5f177c613b8d16d5cefab2f9"
+  },
+  {
+    "id": "dl-3365-1941",
+    "title": "Decreto-Lei 3.365/1941 — Desapropriações",
+    "source": "https://www.planalto.gov.br/ccivil_03/decreto-lei/del3365.htm",
+    "file": "decretos-lei/dl-3365-1941.html",
+    "anchors": 146,
+    "hrefs_preserved": 235,
+    "source_sha256": "dc67c269f7b6f2e8b44c296d8fc6b043702f91187b581d4343166711e4bbc3f0",
+    "output_sha256": "37108fee0233d49d6c4c37fb490d4cd94bc836de0cdd25408948e85de3af747b"
+  }
+]
