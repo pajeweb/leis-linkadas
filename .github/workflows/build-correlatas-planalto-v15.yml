@@ -1,0 +1,312 @@
+name: Build correlated Planalto laws v15
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-correlatas-planalto-v15.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build 22 additional laws from Planalto only
+        shell: bash
+        run: |
+          python -m pip install --quiet requests beautifulsoup4 lxml charset-normalizer
+          python <<'PY'
+          import re, json, hashlib, shutil, zipfile, html as htmlmod
+          from pathlib import Path
+          from urllib.parse import urljoin, urlparse
+          import requests
+          from bs4 import BeautifulSoup
+          from charset_normalizer import from_bytes
+
+          ROOT=Path('correlatas-adicionais')
+          if ROOT.exists(): shutil.rmtree(ROOT)
+          (ROOT/'leis').mkdir(parents=True)
+          session=requests.Session()
+          session.headers.update({'User-Agent':'Mozilla/5.0','Accept':'text/html,application/xhtml+xml'})
+
+          laws=[
+            ('lei-4504-1964','Lei 4.504/1964 — Estatuto da Terra','https://www.planalto.gov.br/ccivil_03/leis/l4504.htm','leis/lei-4504-1964.html'),
+            ('lei-5869-1973','Lei 5.869/1973 — Código de Processo Civil (revogado)','https://www.planalto.gov.br/ccivil_03/leis/l5869.htm','leis/lei-5869-1973.html'),
+            ('lei-8069-1990','Lei 8.069/1990 — Estatuto da Criança e do Adolescente','https://www.planalto.gov.br/ccivil_03/leis/l8069.htm','leis/lei-8069-1990.html'),
+            ('lei-8212-1991','Lei 8.212/1991 — Seguridade Social','https://www.planalto.gov.br/ccivil_03/leis/l8212cons.htm','leis/lei-8212-1991.html'),
+            ('lei-8560-1992','Lei 8.560/1992 — Investigação de Paternidade','https://www.planalto.gov.br/ccivil_03/leis/l8560.htm','leis/lei-8560-1992.html'),
+            ('lei-8629-1993','Lei 8.629/1993 — Reforma Agrária','https://www.planalto.gov.br/ccivil_03/leis/l8629.htm','leis/lei-8629-1993.html'),
+            ('lei-8934-1994','Lei 8.934/1994 — Registro Público de Empresas Mercantis','https://www.planalto.gov.br/ccivil_03/leis/l8934.htm','leis/lei-8934-1994.html'),
+            ('lei-9434-1997','Lei 9.434/1997 — Transplantes','https://www.planalto.gov.br/ccivil_03/leis/l9434.htm','leis/lei-9434-1997.html'),
+            ('lei-9613-1998','Lei 9.613/1998 — Lavagem de Dinheiro','https://www.planalto.gov.br/ccivil_03/leis/l9613.htm','leis/lei-9613-1998.html'),
+            ('lei-10267-2001','Lei 10.267/2001 — Georreferenciamento de Imóveis Rurais','https://www.planalto.gov.br/ccivil_03/leis/leis_2001/l10267.htm','leis/lei-10267-2001.html'),
+            ('lei-11101-2005','Lei 11.101/2005 — Recuperação Judicial e Falências','https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/l11101.htm','leis/lei-11101-2005.html'),
+            ('lei-11419-2006','Lei 11.419/2006 — Informatização do Processo Judicial','https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/l11419.htm','leis/lei-11419-2006.html'),
+            ('lei-11441-2007','Lei 11.441/2007 — Inventário, Partilha, Separação e Divórcio Consensuais','https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2007/lei/l11441.htm','leis/lei-11441-2007.html'),
+            ('lei-11977-2009','Lei 11.977/2009 — Programa Minha Casa, Minha Vida','https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11977.htm','leis/lei-11977-2009.html'),
+            ('lei-12651-2012','Lei 12.651/2012 — Código Florestal','https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12651.htm','leis/lei-12651-2012.html'),
+            ('lei-12662-2012','Lei 12.662/2012 — Declaração de Nascido Vivo','https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12662.htm','leis/lei-12662-2012.html'),
+            ('lei-12965-2014','Lei 12.965/2014 — Marco Civil da Internet','https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm','leis/lei-12965-2014.html'),
+            ('lei-13140-2015','Lei 13.140/2015 — Mediação','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13140.htm','leis/lei-13140-2015.html'),
+            ('lei-13444-2017','Lei 13.444/2017 — Identificação Civil Nacional','https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13444.htm','leis/lei-13444-2017.html'),
+            ('lei-13810-2019','Lei 13.810/2019 — Sanções do Conselho de Segurança da ONU','https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13810.htm','leis/lei-13810-2019.html'),
+            ('lei-13838-2019','Lei 13.838/2019 — Georreferenciamento e Confrontantes','https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13838.htm','leis/lei-13838-2019.html'),
+            ('lei-14063-2020','Lei 14.063/2020 — Assinaturas Eletrônicas','https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14063.htm','leis/lei-14063-2020.html'),
+          ]
+
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          def norm_ws(s): return re.sub(r'\s+',' ',s or '').strip()
+          suspicious=re.compile(r'(Ã[\x80-\xbf]|Â[\x80-\xbfºª§]|â€|â€™|â€œ|â€�|ï»¿|\ufffd|[ŐőŰűŞşŢţĂăĄąĆćĘęŁłŃńŚśŹźŻż])')
+
+          def declared_charsets(raw,headers):
+              out=[]
+              ct=headers.get('content-type','')
+              m=re.search(r'charset\s*=\s*["\']?([\w.-]+)',ct,re.I)
+              if m: out.append(m.group(1))
+              head=raw[:16000]
+              for pat in [br'<meta[^>]+charset\s*=\s*["\']?([\w.-]+)',br'<meta[^>]+content=["\'][^"\']*charset=([\w.-]+)']:
+                  mm=re.search(pat,head,re.I)
+                  if mm:
+                      try: out.append(mm.group(1).decode('ascii'))
+                      except: pass
+              return out
+
+          def decode(raw,headers):
+              declared=declared_charsets(raw,headers)
+              candidates=[]
+              for enc in declared:
+                  e=enc.strip().lower()
+                  if e in ('iso-8859-1','latin1','latin-1','windows-1252','cp1252'): e='cp1252'
+                  candidates.append(e)
+              candidates += ['utf-8','cp1252']
+              best=from_bytes(raw).best()
+              if best and best.encoding: candidates.append(best.encoding)
+              seen=[]; scored=[]
+              for enc in candidates:
+                  enc=(enc or '').lower()
+                  if enc in seen: continue
+                  seen.append(enc)
+                  try: txt=raw.decode(enc)
+                  except: continue
+                  score=len(suspicious.findall(txt))*10000+txt.count('\ufffd')*100000
+                  if enc=='cp1252' and any(x.lower() in ('iso-8859-1','latin1','latin-1','windows-1252','cp1252') for x in declared): score-=100
+                  if enc=='utf-8' and any('utf-8' in x.lower() or 'utf8' in x.lower() for x in declared): score-=100
+                  scored.append((score,enc,txt))
+              if not scored: raise RuntimeError('sem decodificação')
+              score,enc,txt=min(scored,key=lambda x:x[0])
+              if suspicious.search(txt): raise RuntimeError(f'codificação suspeita {enc}')
+              return txt,enc
+
+          def fetch(url):
+              last=None
+              for timeout in (30,60,90):
+                  try:
+                      r=session.get(url,timeout=timeout,allow_redirects=True)
+                      r.raise_for_status()
+                      if urlparse(r.url).hostname not in ('www.planalto.gov.br','planalto.gov.br'):
+                          raise RuntimeError('redirecionamento fora do Planalto: '+r.url)
+                      txt,enc=decode(r.content,r.headers)
+                      return r.content,txt,enc,r.url
+                  except Exception as e: last=e
+              raise last
+
+          def compiled_link(base,text):
+              soup=BeautifulSoup(text,'lxml')
+              ranked=[]
+              for a in soup.find_all('a',href=True):
+                  label=norm_ws(a.get_text(' ',strip=True)).lower()
+                  if re.fullmatch(r'\(?\s*texto consolidado\s*\)?',label): score=0
+                  elif re.fullmatch(r'\(?\s*texto compilado\s*\)?',label): score=1
+                  elif re.fullmatch(r'\(?\s*texto atualizado\s*\)?',label): score=2
+                  else: continue
+                  u=urljoin(base,a['href'])
+                  if urlparse(u).hostname not in ('www.planalto.gov.br','planalto.gov.br'): continue
+                  ranked.append((score,u,label))
+              return min(ranked,key=lambda x:x[0]) if ranked else None
+
+          def resolve(url):
+              raw,txt,enc,final=fetch(url)
+              link=compiled_link(final,txt)
+              if link:
+                  _,u,label=link
+                  raw2,txt2,enc2,final2=fetch(u)
+                  return raw2,txt2,enc2,final2,'link-oficial-'+label
+              return raw,txt,enc,final,'pagina-oficial-corrente-sem-link-separado'
+
+          art_re=re.compile(r'^\s*(?i:Art(?:igo)?)\.?\s*(\d+)\s*[º°o]?\s*(?:[-–—]\s*([A-Z]))?(?=\s|[.\-–—:])')
+          par_re=re.compile(r'^\s*§\s*(\d+)\s*[º°o]?\s*(?:[-–—]\s*([A-Z]))?(?=\s|[.\-–—:])',re.I)
+          pu_re=re.compile(r'^\s*Parágrafo\s+único\.?',re.I)
+          inc_re=re.compile(r'^\s*([IVXLCDM]+)\s*(?:[-–—]|\.)\s+',re.I)
+          ali_re=re.compile(r'^\s*([a-z])\s*[\)\-–—]\s+',re.I)
+          item_re=re.compile(r'^\s*(\d+)\s*[\.)\-–—]\s+')
+
+          def device_start(txt):
+              return bool(art_re.match(txt) or par_re.match(txt) or pu_re.match(txt) or inc_re.match(txt) or ali_re.match(txt) or item_re.match(txt))
+
+          def add_anchors(text,prefix):
+              soup=BeautifulSoup(text,'lxml')
+              before_text=soup.get_text('',strip=False)
+              href_before=[a.get('href') for a in soup.find_all('a') if a.has_attr('href')]
+              if soup.head:
+                  for m in soup.find_all('meta'):
+                      if m.has_attr('charset'): m['charset']='utf-8'
+                      if 'content' in m.attrs and 'charset=' in str(m.get('content','')).lower():
+                          m['content']=re.sub(r'charset\s*=\s*[^;\s]+','charset=utf-8',m['content'],flags=re.I)
+                  if not soup.find('meta',attrs={'charset':True}):
+                      mm=soup.new_tag('meta'); mm['charset']='utf-8'; soup.head.insert(0,mm)
+              candidate_names={'p','div','li','td','blockquote','h1','h2','h3','h4','h5','h6'}
+              candidates=[]
+              for tag in soup.find_all(candidate_names):
+                  txt=' '.join(tag.stripped_strings)
+                  if not txt or not device_start(txt): continue
+                  # use the smallest legal-device container to avoid parent/child duplicate anchoring
+                  child=False
+                  for d in tag.find_all(candidate_names):
+                      dt=' '.join(d.stripped_strings)
+                      if dt and device_start(dt): child=True; break
+                  if not child: candidates.append((tag,txt))
+              used={e.get('id') for e in soup.find_all(attrs={'id':True}) if e.get('id')}
+              generated=set(); occ={}; cur_art=cur_par=cur_inc=None
+              counts={'art':0,'par':0,'inc':0,'ali':0,'item':0}
+              def unique(base):
+                  n=occ.get(base,0)+1
+                  while True:
+                      cand=base if n==1 else f'{base}-occ-{n}'
+                      if cand not in used and cand not in generated: break
+                      n+=1
+                  occ[base]=n; generated.add(cand); return cand
+              for tag,txt in candidates:
+                  base=kind=None
+                  m=art_re.match(txt)
+                  if m:
+                      cur_art=m.group(1)+(('-'+m.group(2).lower()) if m.group(2) else '')
+                      cur_par=cur_inc=None; base=f'{prefix}-art-{cur_art}'; kind='art'
+                  elif cur_art:
+                      if pu_re.match(txt):
+                          cur_par='unico'; cur_inc=None; base=f'{prefix}-art-{cur_art}-par-unico'; kind='par'
+                      else:
+                          m=par_re.match(txt)
+                          if m:
+                              cur_par=m.group(1)+(('-'+m.group(2).lower()) if m.group(2) else '')
+                              cur_inc=None; base=f'{prefix}-art-{cur_art}-par-{cur_par}'; kind='par'
+                          else:
+                              m=inc_re.match(txt)
+                              if m:
+                                  cur_inc=m.group(1).lower(); base=f'{prefix}-art-{cur_art}'+(f'-par-{cur_par}' if cur_par else '')+f'-inc-{cur_inc}'; kind='inc'
+                              else:
+                                  m=ali_re.match(txt)
+                                  if m:
+                                      base=f'{prefix}-art-{cur_art}'+(f'-par-{cur_par}' if cur_par else '')+(f'-inc-{cur_inc}' if cur_inc else '')+f'-ali-{m.group(1).lower()}'; kind='ali'
+                                  else:
+                                      m=item_re.match(txt)
+                                      if m and (cur_par or cur_inc):
+                                          base=f'{prefix}-art-{cur_art}'+(f'-par-{cur_par}' if cur_par else '')+(f'-inc-{cur_inc}' if cur_inc else '')+f'-item-{m.group(1)}'; kind='item'
+                  if base:
+                      sp=soup.new_tag('span'); sp['id']=unique(base); tag.insert(0,sp); counts[kind]+=1
+              after_text=soup.get_text('',strip=False)
+              if before_text!=after_text: raise RuntimeError('texto visível mudou')
+              href_after=[a.get('href') for a in soup.find_all('a') if a.has_attr('href')]
+              if href_before!=href_after: raise RuntimeError('hrefs mudaram')
+              if counts['art']==0: raise RuntimeError('nenhum artigo ancorado')
+              out='<!doctype html>\n'+str(soup)
+              visible=BeautifulSoup(out,'lxml').get_text(' ',strip=False)
+              if suspicious.search(visible): raise RuntimeError('caracteres suspeitos no HTML final')
+              gids=[x for x in generated]
+              if len(gids)!=len(set(gids)): raise RuntimeError('IDs gerados duplicados')
+              return out,counts,len(href_before),len(generated)
+
+          report=[]
+          for i,(prefix,title,url,file) in enumerate(laws,1):
+              print(f'[{i}/22] {title}',flush=True)
+              raw,text,enc,resolved,criterion=resolve(url)
+              out,counts,hrefs,gen=add_anchors(text,prefix)
+              dest=ROOT/file; dest.write_text(out,encoding='utf-8',newline='\n')
+              report.append({'prefixo':prefix,'normativo':title,'arquivo':file,'fonte_canonica':url,'fonte_resolvida':resolved,'criterio_fonte':criterion,'encoding_origem':enc,'sha256_origem':sha(raw),'sha256_saida':sha(out.encode()),'ancoras':counts,'ancoras_geradas':gen,'hrefs_preservados':hrefs})
+
+          # Required anchor checks
+          for r in report:
+              p=ROOT/r['arquivo']; s=BeautifulSoup(p.read_text(encoding='utf-8'),'lxml')
+              ids={e.get('id') for e in s.find_all(attrs={'id':True}) if e.get('id')}
+              rid=r['prefixo']+'-art-1'
+              if rid not in ids: raise RuntimeError('âncora obrigatória ausente: '+rid)
+
+          # Build updated full index from repository's current index, add new laws, then normalize order.
+          idx=Path('index.html').read_text(encoding='utf-8')
+          soup=BeautifulSoup(idx,'lxml')
+          laws_h2=None
+          for h2 in soup.find_all('h2'):
+              if norm_ws(h2.get_text()).lower()=='leis': laws_h2=h2; break
+          if not laws_h2: raise RuntimeError('seção Leis não encontrada no index atual')
+          ul=laws_h2.find_next('ul')
+          existing={a.get('href') for a in ul.find_all('a',href=True)}
+          for r in report:
+              if r['arquivo'] in existing: continue
+              li=soup.new_tag('li'); a=soup.new_tag('a',href=r['arquivo']); a.string=r['normativo']; sm=soup.new_tag('small'); sm.string=r['criterio_fonte']; li.append(a); li.append(sm); ul.append(li)
+          def law_key(li):
+              t=norm_ws(li.get_text(' ',strip=True))
+              m=re.search(r'Lei\s+([\d.]+)/(\d{4})',t,re.I)
+              if not m: return (10**12,9999,t.casefold())
+              return (int(re.sub(r'\D','',m.group(1))),int(m.group(2)),t.casefold())
+          lis=ul.find_all('li',recursive=False)
+          for li in sorted(lis,key=law_key): ul.append(li)
+
+          # Normalize CNJ display: Provimento 149 separate, then Provimentos, then Resoluções; each numeric.
+          cnj_h2=None
+          for h2 in soup.find_all('h2'):
+              if norm_ws(h2.get_text()).upper()=='CNJ': cnj_h2=h2; break
+          if cnj_h2:
+              sec=cnj_h2.parent; oldul=cnj_h2.find_next('ul')
+              if oldul and oldul.parent==sec:
+                  cnj_items=oldul.find_all('li',recursive=False)
+                  p149=[]; prov=[]; res=[]; other=[]
+                  def nkey(li):
+                      t=norm_ws(li.get_text(' ',strip=True)); m=re.search(r'(?:Provimento|Resolução(?:\s+Conjunta)?)\s+(\d+)/(\d{4})',t,re.I)
+                      return (int(m.group(1)),int(m.group(2)),t.casefold()) if m else (10**9,9999,t.casefold())
+                  for li in cnj_items:
+                      t=norm_ws(li.get_text(' ',strip=True))
+                      if re.search(r'Provimento\s+CNJ\s+149/2023',t,re.I): p149.append(li)
+                      elif re.search(r'\bProvimento\b',t,re.I): prov.append(li)
+                      elif re.search(r'\bResolução\b',t,re.I): res.append(li)
+                      else: other.append(li)
+                  oldul.extract()
+                  after=cnj_h2
+                  for title,arr in [('Provimento 149/2023 + CNN',p149),('Provimentos',sorted(prov,key=nkey)),('Resoluções',sorted(res,key=nkey)),('Outros atos',other)]:
+                      if not arr: continue
+                      h3=soup.new_tag('h3'); h3.string=title; nu=soup.new_tag('ul')
+                      for li in arr: nu.append(li)
+                      after.insert_after(nu); after.insert_after(h3); after=nu
+          if soup.head and not soup.find('meta',attrs={'charset':True}):
+              mm=soup.new_tag('meta'); mm['charset']='utf-8'; soup.head.insert(0,mm)
+          index_out='<!doctype html>\n'+str(soup)
+          (ROOT/'index.html').write_text(index_out,encoding='utf-8',newline='\n')
+          (ROOT/'MANIFESTO-CORRELATAS-ADICIONAIS.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+
+          # Final package audit
+          htmls=list((ROOT/'leis').glob('*.html'))
+          if len(htmls)!=22: raise RuntimeError(f'esperados 22 HTMLs, encontrados {len(htmls)}')
+          for p in htmls:
+              raw=p.read_bytes(); txt=raw.decode('utf-8'); s=BeautifulSoup(txt,'lxml'); vis=s.get_text(' ',strip=False)
+              if suspicious.search(vis): raise RuntimeError('caractere suspeito: '+str(p))
+              generated=[e.get('id') for e in s.find_all(attrs={'id':True}) if e.get('id','').startswith('lei-')]
+              if len(generated)!=len(set(generated)): raise RuntimeError('ID gerado duplicado: '+str(p))
+          idxs=BeautifulSoup((ROOT/'index.html').read_text(encoding='utf-8'),'lxml')
+          hrefs={a.get('href') for a in idxs.find_all('a',href=True)}
+          for r in report:
+              if r['arquivo'] not in hrefs: raise RuntimeError('index sem '+r['arquivo'])
+          print('AUDITORIA_OK 22 leis adicionais + index.html',flush=True)
+
+          z=Path('correlatas-adicionais-planalto.zip')
+          with zipfile.ZipFile(z,'w',zipfile.ZIP_DEFLATED) as zz:
+              for p in ROOT.rglob('*'):
+                  if p.is_file(): zz.write(p,p.relative_to(ROOT))
+          print('ZIP_OK',z.stat().st_size,sha(z.read_bytes()),flush=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: correlatas-adicionais-planalto-v15
+          path: correlatas-adicionais-planalto.zip
+          if-no-files-found: error
+          retention-days: 30
