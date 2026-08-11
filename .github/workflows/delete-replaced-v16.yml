@@ -1,0 +1,123 @@
+name: Delete files replaced by v16
+on:
+  push:
+    paths:
+      - '.github/workflows/delete-replaced-v16.yml'
+permissions:
+  contents: write
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Delete only files replaced by v16
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/replaced.txt <<'EOF'
+          codigos/codigo-penal.html
+          codigos/codigo-civil.html
+          codigos/codigo-processo-civil.html
+          codigos/codigo-processo-penal.html
+          cnj/provimento-149-2023.html
+          constituicao/constituicao-federal.html
+          leis/lei-4380-1964.html
+          leis/lei-8212-1991.html
+          leis/lei-4591-1964.html
+          leis/lei-10257-2001.html
+          leis/lei-13810-2019.html
+          leis/lei-6015-1973.html
+          leis/lei-13709-2018.html
+          leis/lei-11441-2007.html
+          leis/lei-9613-1998.html
+          leis/lei-5869-1973.html
+          leis/lei-9492-1997.html
+          leis/lei-8934-1994.html
+          leis/lei-6766-1979.html
+          leis/lei-8069-1990.html
+          leis/lei-8935-1994.html
+          leis/lei-14063-2020.html
+          leis/lei-13874-2019.html
+          leis/lei-12846-2013.html
+          leis/lei-9099-1995.html
+          leis/lei-13140-2015.html
+          leis/lei-13089-2015.html
+          leis/lei-9514-1997.html
+          leis/lei-8245-1991.html
+          leis/lei-12662-2012.html
+          leis/lei-11419-2006.html
+          leis/lei-10267-2001.html
+          leis/lei-13838-2019.html
+          leis/lei-14133-2021.html
+          leis/lei-13146-2015.html
+          leis/lei-11977-2009.html
+          leis/lei-8009-1990.html
+          leis/lei-14382-2022.html
+          leis/lei-12651-2012.html
+          leis/lei-13465-2017.html
+          leis/lei-14711-2023.html
+          leis/lei-10169-2000.html
+          leis/lei-8429-1992.html
+          leis/lei-11101-2005.html
+          leis/lei-12965-2014.html
+          leis/lei-12527-2011.html
+          leis/lei-13460-2017.html
+          leis/lei-8629-1993.html
+          decretos-lei/dl-3365-1941.html
+          decretos-lei/dl-911-1969.html
+          cnj/provimentos/provimento-107-2020.html
+          cnj/provimentos/provimento-25-2012.html
+          cnj/provimentos/provimento-122-2021.html
+          cnj/provimentos/provimento-81-2018.html
+          cnj/provimentos/provimento-50-2015.html
+          cnj/provimentos/provimento-63-2017.html
+          cnj/provimentos/provimento-39-2014.html
+          cnj/provimentos/provimento-56-2016.html
+          cnj/provimentos/provimento-16-2012.html
+          cnj/provimentos/provimento-140-2023.html
+          cnj/provimentos/provimento-109-2020.html
+          cnj/provimentos/provimento-82-2019.html
+          cnj/provimentos/provimento-115-2021.html
+          cnj/provimentos/provimento-142-2023.html
+          cnj/provimentos/provimento-144-2023.html
+          cnj/provimentos/provimento-26-2012.html
+          cnj/provimentos/provimento-44-2015.html
+          cnj/provimentos/provimento-62-2017.html
+          cnj/provimentos/provimento-73-2018.html
+          cnj/provimentos/provimento-124-2021.html
+          cnj/provimentos/provimento-89-2019.html
+          cnj/provimentos/provimento-103-2020.html
+          cnj/provimentos/provimento-12-2010.html
+          cnj/provimentos/provimento-79-2018.html
+          cnj/provimentos/provimento-74-2018.html
+          cnj/resolucoes/resolucao-401-2021.html
+          cnj/resolucoes/resolucao-conjunta-3-2012.html
+          cnj/resolucoes/resolucao-269-2018.html
+          cnj/resolucoes/resolucao-228-2016.html
+          cnj/resolucoes/resolucao-402-2021.html
+          cnj/resolucoes/resolucao-227-2016.html
+          cnj/resolucoes/resolucao-155-2012.html
+          cnj/resolucoes/resolucao-67-2009.html
+          cnj/resolucoes/resolucao-35-2007.html
+          cnj/resolucoes/resolucao-81-2009.html
+          cnj/resolucoes/resolucao-80-2009.html
+          cnj/resolucoes/resolucao-20-2006.html
+          cnj/resolucoes/resolucao-125-2010.html
+          EOF
+          count=0
+          while IFS= read -r p; do
+            [ -z "$p" ] && continue
+            if [ -f "$p" ]; then
+              git rm -- "$p"
+              count=$((count+1))
+            fi
+          done < /tmp/replaced.txt
+          echo "Deleted $count replaced HTML files"
+          test "$count" -eq 88
+          git rm -- .github/workflows/delete-replaced-v16.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Remove files to be replaced by v16 package'
+          git push
