@@ -1,0 +1,442 @@
+[
+  {
+    "prefixo": "lei-4504-1964",
+    "normativo": "Lei 4.504/1964 — Estatuto da Terra",
+    "arquivo": "leis/lei-4504-1964.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l4504.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l4504compilada.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "28fbe59f3c21f5434a0e2b84f43d4f187bb417e8f23e76633040ee6b0d0cecf4",
+    "sha256_saida": "1b165155757fc698d4abfcba64649be50f48ab33d65f2b6661f8993b965f59a6",
+    "ancoras": {
+      "art": 125,
+      "par": 185,
+      "inc": 166,
+      "ali": 164,
+      "item": 0
+    },
+    "ancoras_geradas": 640,
+    "hrefs_preservados": 98
+  },
+  {
+    "prefixo": "lei-5869-1973",
+    "normativo": "Lei 5.869/1973 — Código de Processo Civil (revogado)",
+    "arquivo": "leis/lei-5869-1973.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l5869.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l5869.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "90a9a0b353b3c443083e96ab3bec5b082f13b315a550d3534ac6f1165b4310c2",
+    "sha256_saida": "5902aa1b28b672bc05d9f03197d9478924d34bb51bf278d981d1aef9dab88848",
+    "ancoras": {
+      "art": 1504,
+      "par": 978,
+      "inc": 1274,
+      "ali": 87,
+      "item": 0
+    },
+    "ancoras_geradas": 3843,
+    "hrefs_preservados": 1501
+  },
+  {
+    "prefixo": "lei-8069-1990",
+    "normativo": "Lei 8.069/1990 — Estatuto da Criança e do Adolescente",
+    "arquivo": "leis/lei-8069-1990.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8069.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8069compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "ccd0b50d5c996566918925a7b191d5bc803975951f28beb0651840c1c444eb42",
+    "sha256_saida": "4cee47e5e20421742027492ebe4ee8398ed100e65e2b6696c683fef89294bf95",
+    "ancoras": {
+      "art": 329,
+      "par": 433,
+      "inc": 423,
+      "ali": 71,
+      "item": 6
+    },
+    "ancoras_geradas": 1262,
+    "hrefs_preservados": 1077
+  },
+  {
+    "prefixo": "lei-8212-1991",
+    "normativo": "Lei 8.212/1991 — Seguridade Social",
+    "arquivo": "leis/lei-8212-1991.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8212cons.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8212compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "b0097709bd2cb14a3930387e8f93db1889fc0e91b1e5dcf717a3a60146762d0a",
+    "sha256_saida": "4dd8d49327edf652ff2fbea4fb7a7e4cf948fd57cf848298b44d33622b3e7021",
+    "ancoras": {
+      "art": 115,
+      "par": 261,
+      "inc": 152,
+      "ali": 145,
+      "item": 19
+    },
+    "ancoras_geradas": 692,
+    "hrefs_preservados": 658
+  },
+  {
+    "prefixo": "lei-8560-1992",
+    "normativo": "Lei 8.560/1992 — Investigação de Paternidade",
+    "arquivo": "leis/lei-8560-1992.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8560.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8560.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "2548af3488dd481b78d62f1db3738ce98e1530663053c9e9f1ff266b45f65bfe",
+    "sha256_saida": "d11206576a648bf07097c02433d31bc49c3ef59e7de35ea361b96139c757a588",
+    "ancoras": {
+      "art": 11,
+      "par": 12,
+      "inc": 4,
+      "ali": 0,
+      "item": 0
+    },
+    "ancoras_geradas": 27,
+    "hrefs_preservados": 12
+  },
+  {
+    "prefixo": "lei-8629-1993",
+    "normativo": "Lei 8.629/1993 — Reforma Agrária",
+    "arquivo": "leis/lei-8629-1993.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8629.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8629compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "7947e128fe668a8f7035e185a0f82a47a0c61eb15169cf0bd51e9ce86d80b1a2",
+    "sha256_saida": "4045a0c873eb947cb7bcc2368423b77903d4d9003cbaed2a244ed043771e4b93",
+    "ancoras": {
+      "art": 36,
+      "par": 92,
+      "inc": 75,
+      "ali": 9,
+      "item": 0
+    },
+    "ancoras_geradas": 212,
+    "hrefs_preservados": 157
+  },
+  {
+    "prefixo": "lei-8934-1994",
+    "normativo": "Lei 8.934/1994 — Registro Público de Empresas Mercantis",
+    "arquivo": "leis/lei-8934-1994.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8934.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8934compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "3211cc3f47183ea1c6f968981d752fdb8e2c9bf1460bf9cbec59f759ec433723",
+    "sha256_saida": "34fd02a1480e6d5071142c005429e9df92146c377278b498c26804c082d52c99",
+    "ancoras": {
+      "art": 71,
+      "par": 37,
+      "inc": 71,
+      "ali": 16,
+      "item": 0
+    },
+    "ancoras_geradas": 195,
+    "hrefs_preservados": 100
+  },
+  {
+    "prefixo": "lei-9434-1997",
+    "normativo": "Lei 9.434/1997 — Transplantes",
+    "arquivo": "leis/lei-9434-1997.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l9434.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l9434compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "b3cb2da27e2d4e335d45bf2cb600bf304568276e282a9aa2c785f153cf083a9a",
+    "sha256_saida": "6b362acaa25bc2ecbde5c0044b9989121b0399c1103ddf6fb459742244656cb6",
+    "ancoras": {
+      "art": 29,
+      "par": 38,
+      "inc": 9,
+      "ali": 3,
+      "item": 0
+    },
+    "ancoras_geradas": 79,
+    "hrefs_preservados": 32
+  },
+  {
+    "prefixo": "lei-9613-1998",
+    "normativo": "Lei 9.613/1998 — Lavagem de Dinheiro",
+    "arquivo": "leis/lei-9613-1998.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l9613.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l9613compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "6dd9258a7fe43408902b13ceac30c537cbe80ca2b7c9fd3ade5c06d7303e281c",
+    "sha256_saida": "df0c7b65c7bec4b1d868cc4a9318a38a2175b4d974c229c8120440df3b5751c7",
+    "ancoras": {
+      "art": 28,
+      "par": 47,
+      "inc": 65,
+      "ali": 18,
+      "item": 0
+    },
+    "ancoras_geradas": 158,
+    "hrefs_preservados": 131
+  },
+  {
+    "prefixo": "lei-10267-2001",
+    "normativo": "Lei 10.267/2001 — Georreferenciamento de Imóveis Rurais",
+    "arquivo": "leis/lei-10267-2001.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/leis_2001/l10267.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/leis_2001/l10267.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "a3cf272e63ad1c8fba1a7baa2f7ce50d3844640c986d1c994fa49801c5b9e32a",
+    "sha256_saida": "036d7d5d3e2c2a816c58cb66741620ac35c0ab1a686d5cb4f829f19ee7d50ae0",
+    "ancoras": {
+      "art": 6,
+      "par": 30,
+      "inc": 9,
+      "ali": 2,
+      "item": 1
+    },
+    "ancoras_geradas": 48,
+    "hrefs_preservados": 24
+  },
+  {
+    "prefixo": "lei-11101-2005",
+    "normativo": "Lei 11.101/2005 — Recuperação Judicial e Falências",
+    "arquivo": "leis/lei-11101-2005.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/l11101.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2005/lei/l11101compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "39fcb920117d3b3fd604f6d6744b05ea0e4951d632681b655fb359226214d47a",
+    "sha256_saida": "91834dd4e9ba9a26b2017254c5fd2eedc14e57d95f31f3ee82c003f2d9c03232",
+    "ancoras": {
+      "art": 261,
+      "par": 404,
+      "inc": 367,
+      "ali": 100,
+      "item": 0
+    },
+    "ancoras_geradas": 1132,
+    "hrefs_preservados": 1052
+  },
+  {
+    "prefixo": "lei-11419-2006",
+    "normativo": "Lei 11.419/2006 — Informatização do Processo Judicial",
+    "arquivo": "leis/lei-11419-2006.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/l11419.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2004-2006/2006/lei/l11419.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "4a5dbb02de7cf053dfb1feeb6ff60ded9b73e14d685e6f0cc83f7e16a58fb6e0",
+    "sha256_saida": "97e59c11f53f4f11fad3274792fae9434317837bd4d29f59ce66c187d37771eb",
+    "ancoras": {
+      "art": 22,
+      "par": 59,
+      "inc": 6,
+      "ali": 2,
+      "item": 0
+    },
+    "ancoras_geradas": 89,
+    "hrefs_preservados": 25
+  },
+  {
+    "prefixo": "lei-11441-2007",
+    "normativo": "Lei 11.441/2007 — Inventário, Partilha, Separação e Divórcio Consensuais",
+    "arquivo": "leis/lei-11441-2007.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2007/lei/l11441.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2007/lei/l11441.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "bfa0c610462adc23bf27b7f5e6dfc608c8d54abc29a5051c1bb415b8c74a3811",
+    "sha256_saida": "71db71c800d679c221087f439a526ccc941161c6bbcb456f043fbb085d03820a",
+    "ancoras": {
+      "art": 5,
+      "par": 5,
+      "inc": 0,
+      "ali": 0,
+      "item": 0
+    },
+    "ancoras_geradas": 10,
+    "hrefs_preservados": 5
+  },
+  {
+    "prefixo": "lei-11977-2009",
+    "normativo": "Lei 11.977/2009 — Programa Minha Casa, Minha Vida",
+    "arquivo": "leis/lei-11977-2009.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11977.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l11977compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "cd2213f84b3eb3614981a846421aebadfac1349809a3343727db8448ba031ef1",
+    "sha256_saida": "cfb6dc4b194529dfba706657463fc7f21b1252035af6740556246e09e4a5aec4",
+    "ancoras": {
+      "art": 80,
+      "par": 145,
+      "inc": 141,
+      "ali": 6,
+      "item": 2
+    },
+    "ancoras_geradas": 374,
+    "hrefs_preservados": 320
+  },
+  {
+    "prefixo": "lei-12651-2012",
+    "normativo": "Lei 12.651/2012 — Código Florestal",
+    "arquivo": "leis/lei-12651-2012.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12651.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12651compilado.htm",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "5ac9469899a685b9f15a6e6d701aaf799f664658dc3ed49c09bb654fd0888e6e",
+    "sha256_saida": "df10517ebd7dc96a268e3ce439492de41f8ceab988545099dfe1c7e44ccb2b59",
+    "ancoras": {
+      "art": 91,
+      "par": 206,
+      "inc": 236,
+      "ali": 58,
+      "item": 5
+    },
+    "ancoras_geradas": 596,
+    "hrefs_preservados": 291
+  },
+  {
+    "prefixo": "lei-12662-2012",
+    "normativo": "Lei 12.662/2012 — Declaração de Nascido Vivo",
+    "arquivo": "leis/lei-12662-2012.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12662.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2012/lei/l12662.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "1abd99d850a979226a42d2092fdf57786b78ceb267fb1518062b61015e849091",
+    "sha256_saida": "e74246a7650752c17277ca167cc85024272e4254e619055ac6a7aa66bf7e7ec3",
+    "ancoras": {
+      "art": 7,
+      "par": 17,
+      "inc": 12,
+      "ali": 0,
+      "item": 1
+    },
+    "ancoras_geradas": 37,
+    "hrefs_preservados": 9
+  },
+  {
+    "prefixo": "lei-12965-2014",
+    "normativo": "Lei 12.965/2014 — Marco Civil da Internet",
+    "arquivo": "leis/lei-12965-2014.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "80e59434064e84ba5f4e9954723783db9b8277ee60c9f8bdcb14edd100f8e2a7",
+    "sha256_saida": "b40a90aeaf76b4f1007803f91e6c921cba76f71455909a8f5afc215ee1279a1e",
+    "ancoras": {
+      "art": 38,
+      "par": 48,
+      "inc": 117,
+      "ali": 15,
+      "item": 0
+    },
+    "ancoras_geradas": 218,
+    "hrefs_preservados": 165
+  },
+  {
+    "prefixo": "lei-13140-2015",
+    "normativo": "Lei 13.140/2015 — Mediação",
+    "arquivo": "leis/lei-13140-2015.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13140.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13140.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "3f663c305d28c3e90b3c25813e08ea8fb5b3497d8c58d66e9ee9c6f6bc4e5096",
+    "sha256_saida": "ab3817b6a378a564122e8d590a5f643af345e60128585163bdb0055048360f1f",
+    "ancoras": {
+      "art": 48,
+      "par": 57,
+      "inc": 28,
+      "ali": 2,
+      "item": 0
+    },
+    "ancoras_geradas": 135,
+    "hrefs_preservados": 23
+  },
+  {
+    "prefixo": "lei-13444-2017",
+    "normativo": "Lei 13.444/2017 — Identificação Civil Nacional",
+    "arquivo": "leis/lei-13444-2017.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13444.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/lei/l13444.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "f7d6e9b5be45128974f9698ab1965be21a6a81a2e54747d6eff7709775467086",
+    "sha256_saida": "3376efd6a07ad0b1a8b068adafee888c65a4428b7375a8ccbb26ee3e5aead833",
+    "ancoras": {
+      "art": 13,
+      "par": 23,
+      "inc": 18,
+      "ali": 5,
+      "item": 0
+    },
+    "ancoras_geradas": 59,
+    "hrefs_preservados": 5
+  },
+  {
+    "prefixo": "lei-13810-2019",
+    "normativo": "Lei 13.810/2019 — Sanções do Conselho de Segurança da ONU",
+    "arquivo": "leis/lei-13810-2019.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13810.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13810.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "14e904113070db690c66a8dbb43e886313569f7bf81c4e03571ef942c026d055",
+    "sha256_saida": "f7d4d70363548be3e2e3b9fb3589e2535baaca472e46ab16f45d6805248defc5",
+    "ancoras": {
+      "art": 36,
+      "par": 22,
+      "inc": 29,
+      "ali": 0,
+      "item": 0
+    },
+    "ancoras_geradas": 87,
+    "hrefs_preservados": 17
+  },
+  {
+    "prefixo": "lei-13838-2019",
+    "normativo": "Lei 13.838/2019 — Georreferenciamento e Confrontantes",
+    "arquivo": "leis/lei-13838-2019.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13838.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13838.htm",
+    "criterio_fonte": "pagina-oficial-corrente-sem-link-separado",
+    "encoding_origem": "cp1252",
+    "sha256_origem": "0895bae7b91cf752627c86246f4d34ecaccbf2487c81042173290ba6039d1f62",
+    "sha256_saida": "ec26ee7c89bc345e88da3239926a081d035f23c8f53aa24f00f668a7f28a0d40",
+    "ancoras": {
+      "art": 2,
+      "par": 1,
+      "inc": 0,
+      "ali": 0,
+      "item": 0
+    },
+    "ancoras_geradas": 3,
+    "hrefs_preservados": 3
+  },
+  {
+    "prefixo": "lei-14063-2020",
+    "normativo": "Lei 14.063/2020 — Assinaturas Eletrônicas",
+    "arquivo": "leis/lei-14063-2020.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14063.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2020/lei/l14063.htm#view",
+    "criterio_fonte": "link-oficial-texto compilado",
+    "encoding_origem": "iso8859-1",
+    "sha256_origem": "154349ab73fb6a71d2ded117b234e70b41caec27c552ad96ac59984a9df44fa5",
+    "sha256_saida": "da51c4fe9d5d6f4b0d78113967fd76219c49b13757481e4a41afc5ec81ca167b",
+    "ancoras": {
+      "art": 22,
+      "par": 20,
+      "inc": 33,
+      "ali": 14,
+      "item": 0
+    },
+    "ancoras_geradas": 89,
+    "hrefs_preservados": 27
+  }
+]
