@@ -1,0 +1,11 @@
+PACOTE LEIS LINKADAS — AUDITORIA LOCAL FINAL
+
+- 74 normativos HTML.
+- Fontes registradas no MANIFESTO-FONTES-AUDITADAS.json.
+- Hiperlinks oficiais preservados; não foram criadas remissões normativas.
+- Saída UTF-8 validada contra caracteres típicos de mojibake e erro cp1250/cp1252.
+- IDs finais validados como únicos por arquivo.
+- Âncoras essenciais testadas, inclusive Lei 6.015 art. 167, Lei 6.766 art. 1, CC art. 108, CPC art. 319, CF art. 5 e Provimento 149/CNN art. 1.
+- index.html contém links para os 74 normativos.
+
+O conteúdo deste diretório deve ser publicado na raiz do repositório GitHub Pages.
