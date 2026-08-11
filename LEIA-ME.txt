@@ -1,3 +1,0 @@
-PACOTE LEIS LINKADAS — VERSÃO CORRIGIDA UTF-8
-
-Textos obtidos novamente de fontes oficiais, convertidos corretamente para UTF-8 e ancorados sem criar novos hyperlinks. O Código Civil é validado expressamente contra os erros de acentuação identificados. Copie o conteúdo deste ZIP para a raiz do repositório.
