@@ -1,0 +1,198 @@
+name: Repair preserved internal legal hrefs v16
+
+on:
+  push:
+    paths:
+      - '.github/workflows/repair-local-hrefs-v16.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Rewrite only existing Planalto cross-links to local GitHub Pages files
+        shell: bash
+        run: |
+          python -m pip install --quiet beautifulsoup4 lxml
+          python <<'PY'
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          from urllib.parse import urlparse, unquote
+          import os, re, json, posixpath, zipfile, hashlib
+
+          ROOT=Path('.')
+          HTMLS=[p for p in ROOT.rglob('*.html') if '.git' not in p.parts and '.github' not in p.parts and p.name!='index.html']
+
+          # Build local target map from repository filenames.
+          aliases={}
+          targets={}
+          for p in HTMLS:
+              rel=p.as_posix()
+              targets[rel]=p
+              m=re.fullmatch(r'lei-(\d+)-(\d{4})\.html',p.name,re.I)
+              if m:
+                  n=m.group(1)
+                  aliases[f'l{n}']=rel
+              m=re.fullmatch(r'dl-(\d+)-(\d{4})\.html',p.name,re.I)
+              if m:
+                  n=m.group(1)
+                  aliases[f'del{int(n):04d}']=rel
+                  aliases[f'del{n}']=rel
+          # Códigos/Constituição whose local filename does not carry the federal law number.
+          aliases.update({
+            'l10406':'codigos/codigo-civil.html',
+            'l13105':'codigos/codigo-processo-civil.html',
+            'del2848':'codigos/codigo-penal.html',
+            'del3689':'codigos/codigo-processo-penal.html',
+            'l5172':'codigos/codigo-tributario-nacional.html',
+            'constituicao':'constituicao/constituicao-federal.html',
+          })
+
+          def basename_key(href):
+              # Accept original Planalto relative/absolute references only.
+              parsed=urlparse(href)
+              path=parsed.path
+              base=posixpath.basename(path).lower()
+              stem=re.sub(r'\.(?:html?|asp|php)$','',base)
+              stem=re.sub(r'(?:compilad[oa]|consolidad[oa]|consolidado|atualizad[oa])$','',stem)
+              return stem
+
+          def target_anchor_sets(p):
+              s=BeautifulSoup(p.read_text(encoding='utf-8'),'lxml')
+              ids={e.get('id') for e in s.find_all(attrs={'id':True}) if e.get('id')}
+              names={e.get('name') for e in s.find_all(attrs={'name':True}) if e.get('name')}
+              return ids,names
+
+          anchor_cache={}
+          def resolve_fragment(target_rel, frag):
+              if not frag: return ''
+              frag=unquote(frag)
+              if target_rel not in anchor_cache:
+                  anchor_cache[target_rel]=target_anchor_sets(targets[target_rel])
+              ids,names=anchor_cache[target_rel]
+              if frag in ids or frag in names:
+                  return frag
+
+              # Determine generated anchor prefix from target HTML.
+              pref=None
+              for x in ids:
+                  m=re.match(r'(.+?)-art-\d',x)
+                  if m:
+                      pref=m.group(1); break
+              if not pref:
+                  return None
+
+              f=frag.strip().lower().replace('º','').replace('°','')
+              # Examples: art22.0, art22, art22-a, art22§3, art22§3-i, art22_i
+              m=re.match(r'^art\s*(\d+)(?:[.\-]?([a-z]))?(?:\.0)?(?:§\s*(\d+|unico|único))?(?:[._\-]?([ivxlcdm]+))?$',f,re.I)
+              if not m:
+                  return None
+              art=m.group(1)
+              artsuf=m.group(2)
+              par=m.group(3)
+              inc=m.group(4)
+              cand=f'{pref}-art-{art}'
+              if artsuf and artsuf!='o': cand+=f'-{artsuf.lower()}'
+              if par:
+                  par='unico' if par in ('unico','único') else par
+                  cand+=f'-par-{par}'
+              if inc: cand+=f'-inc-{inc.lower()}'
+              return cand if cand in ids else None
+
+          changed=[]; rewrites=[]; unresolved=[]
+          for p in HTMLS:
+              original=p.read_text(encoding='utf-8')
+              soup=BeautifulSoup(original,'lxml')
+              touched=False
+              for a in soup.find_all('a',href=True):
+                  href=a.get('href','')
+                  if not href or href.startswith('#') or href.lower().startswith(('mailto:','javascript:','tel:')):
+                      continue
+                  key=basename_key(href)
+                  target_rel=aliases.get(key)
+                  if not target_rel or target_rel not in targets:
+                      continue
+                  parsed=urlparse(href)
+                  frag=parsed.fragment
+                  newfrag=resolve_fragment(target_rel,frag)
+                  if frag and newfrag is None:
+                      unresolved.append({'arquivo':p.as_posix(),'href':href,'destino':target_rel})
+                      continue
+                  relpath=os.path.relpath(target_rel,start=p.parent.as_posix() or '.').replace(os.sep,'/')
+                  newhref=relpath + (('#'+newfrag) if newfrag else '')
+                  if newhref!=href:
+                      a['href']=newhref; touched=True
+                      rewrites.append({'arquivo':p.as_posix(),'antes':href,'depois':newhref,'destino':target_rel})
+              if touched:
+                  out='<!doctype html>\n'+str(soup)
+                  p.write_text(out,encoding='utf-8',newline='\n')
+                  changed.append(p.as_posix())
+
+          # Validate rewritten local links and fragments.
+          errors=[]
+          for r in rewrites:
+              src=Path(r['arquivo']); h=r['depois']
+              parsed=urlparse(h)
+              tgt=(src.parent/parsed.path).resolve()
+              try: rel=tgt.relative_to(ROOT.resolve()).as_posix()
+              except: errors.append('fora da raiz: '+r['arquivo']+' -> '+h); continue
+              if rel not in targets:
+                  errors.append('destino inexistente: '+r['arquivo']+' -> '+h); continue
+              if parsed.fragment:
+                  ids,names=anchor_cache.get(rel,target_anchor_sets(targets[rel]))
+                  if parsed.fragment not in ids and parsed.fragment not in names:
+                      errors.append('fragmento inexistente: '+r['arquivo']+' -> '+h)
+          if errors:
+              raise RuntimeError('\n'.join(errors[:50]))
+
+          # Specific regression check requested by user: Lei 14.711 -> Lei 9.514 must be local.
+          p=Path('leis/lei-14711-2023.html')
+          if p.exists():
+              txt=p.read_text(encoding='utf-8')
+              if '../../../LEIS/L9514.htm' in txt or '../../../leis/l9514.htm' in txt.lower():
+                  raise RuntimeError('Lei 14.711 ainda contém href antigo para L9514')
+              if 'lei-9514-1997.html' not in txt:
+                  raise RuntimeError('Lei 14.711 não contém href local para Lei 9.514')
+
+          report={'arquivos_alterados':changed,'quantidade_arquivos':len(changed),'links_reescritos':len(rewrites),'reescritas':rewrites,'nao_resolvidos':unresolved}
+          Path('RELATORIO-HREFS-LOCAIS.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('ARQUIVOS_ALTERADOS',len(changed))
+          print('LINKS_REESCRITOS',len(rewrites))
+          print('NAO_RESOLVIDOS_MANTIDOS',len(unresolved))
+
+          z=Path('hrefs-locais-corrigidos-v16.zip')
+          with zipfile.ZipFile(z,'w',zipfile.ZIP_DEFLATED) as zz:
+              for rel in changed:
+                  zz.write(rel,rel)
+              zz.write('RELATORIO-HREFS-LOCAIS.json','RELATORIO-HREFS-LOCAIS.json')
+          print('ZIP_SHA256',hashlib.sha256(z.read_bytes()).hexdigest())
+          PY
+      - name: Commit validated href corrections
+        shell: bash
+        run: |
+          if git diff --quiet -- '*.html'; then
+            echo 'No HTML changes.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- '*.html'
+          git commit -m 'Fix preserved Planalto links to local normative files'
+          git push
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hrefs-locais-corrigidos-v16
+          path: |
+            hrefs-locais-corrigidos-v16.zip
+            RELATORIO-HREFS-LOCAIS.json
+          if-no-files-found: error
+          retention-days: 30
