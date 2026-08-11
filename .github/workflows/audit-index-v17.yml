@@ -1,0 +1,69 @@
+name: Audit index links v17
+
+on:
+  push:
+    paths:
+      - '.github/workflows/audit-index-v17.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Audit index href targets
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urlsplit, unquote
+          import json, os
+
+          class P(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.hrefs=[]
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower()=='a':
+                      d=dict(attrs)
+                      if 'href' in d: self.hrefs.append(d['href'])
+
+          root=Path('.').resolve()
+          idx=Path('index.html')
+          p=P(); p.feed(idx.read_text(encoding='utf-8'))
+          checked=[]; missing=[]; external=[]; fragments=[]
+          for href in p.hrefs:
+              if not href or href.startswith('#'):
+                  continue
+              u=urlsplit(href)
+              if u.scheme or u.netloc:
+                  external.append(href); continue
+              rel=unquote(u.path)
+              target=(idx.parent/rel).resolve()
+              try:
+                  repo_rel=target.relative_to(root).as_posix()
+              except Exception:
+                  missing.append({'href':href,'reason':'fora-da-raiz'}); continue
+              exists=target.is_file()
+              checked.append({'href':href,'path':repo_rel,'exists':exists})
+              if not exists:
+                  missing.append({'href':href,'path':repo_rel,'reason':'arquivo-inexistente'})
+          report={'hrefs_totais':len(p.hrefs),'internos_verificados':len(checked),'externos':external,'faltantes':missing}
+          Path('RELATORIO-INDEX-V17.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('HREFS_TOTAIS',len(p.hrefs))
+          print('INTERNOS_VERIFICADOS',len(checked))
+          print('FALTANTES',len(missing))
+          for m in missing:
+              print('MISSING',m)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-index-v17
+          path: RELATORIO-INDEX-V17.json
+          retention-days: 7
