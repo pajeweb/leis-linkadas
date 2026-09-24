@@ -60,6 +60,26 @@
     "hrefs_preservados": 1077
   },
   {
+    "prefixo": "lei-8112-1990",
+    "normativo": "Lei 8.112/1990 — Regime Jurídico dos Servidores Públicos Federais",
+    "arquivo": "leis/lei-8112-1990.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8112compilado.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8112compilado.htm",
+    "criterio_fonte": "pagina-oficial-compilada",
+    "encoding_origem": "windows-1252",
+    "sha256_origem": "d142cbeb5d06111643f4e526b590389befc41f8de68008da49908695ceb9c9af",
+    "sha256_saida": "f97793d7d078b6497a3ed60ce756ac2dac1bcc84f9a94545dc244658499d3602",
+    "ancoras": {
+      "art": 263,
+      "par": 302,
+      "inc": 245,
+      "ali": 66,
+      "item": 6
+    },
+    "ancoras_geradas": 882,
+    "hrefs_preservados": 424
+  },
+  {
     "prefixo": "lei-8212-1991",
     "normativo": "Lei 8.212/1991 — Seguridade Social",
     "arquivo": "leis/lei-8212-1991.html",
@@ -78,6 +98,26 @@
     },
     "ancoras_geradas": 692,
     "hrefs_preservados": 658
+  },
+  {
+    "prefixo": "lei-8213-1991",
+    "normativo": "Lei 8.213/1991 — Planos de Benefícios da Previdência Social",
+    "arquivo": "leis/lei-8213-1991.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/l8213compilado.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/l8213compilado.htm",
+    "criterio_fonte": "pagina-oficial-compilada",
+    "encoding_origem": "windows-1252",
+    "sha256_origem": "412514192b4ebfbb67ef36026cdab3b2f6acc0f0e57a3b8e74ac49fd497a1e87",
+    "sha256_saida": "ba1eab5f190ee7073b5265475afcb3700975f724a118fad16c28c52e588bbc28",
+    "ancoras": {
+      "art": 176,
+      "par": 322,
+      "inc": 201,
+      "ali": 94,
+      "item": 10
+    },
+    "ancoras_geradas": 803,
+    "hrefs_preservados": 662
   },
   {
     "prefixo": "lei-8560-1992",
