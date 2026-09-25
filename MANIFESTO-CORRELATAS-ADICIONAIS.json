@@ -1,5 +1,25 @@
 [
   {
+    "prefixo": "lei-complementar-123-2006",
+    "normativo": "Lei Complementar 123/2006 — Estatuto Nacional da Microempresa e da Empresa de Pequeno Porte",
+    "arquivo": "leis/lei-complementar-123-2006.html",
+    "fonte_canonica": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm",
+    "fonte_resolvida": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm",
+    "criterio_fonte": "pagina-oficial-consolidada",
+    "encoding_origem": "utf-8 (DOM da página oficial)",
+    "sha256_origem": "c72cd5f421305b7aa180e43b227f2848f358fd6900597a9d31c9ec4e1c1501d7",
+    "sha256_saida": "7eff857b94267fcd2cb3f953a705a3d7f093ed8f35b0a571d42d8210d9274603",
+    "ancoras": {
+      "art": 158,
+      "inc": 451,
+      "par": 523,
+      "ali": 46,
+      "item": 8
+    },
+    "ancoras_geradas": 1186,
+    "hrefs_preservados": 1039
+  },
+  {
     "prefixo": "lei-4504-1964",
     "normativo": "Lei 4.504/1964 — Estatuto da Terra",
     "arquivo": "leis/lei-4504-1964.html",
