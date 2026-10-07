@@ -226,6 +226,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add rfb/instrucao-normativa-2186-2024.html index.html
-          git diff --cached --check
           git commit -m 'Add anchored RFB IN 2186/2024'
           git push
