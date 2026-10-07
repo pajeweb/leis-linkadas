@@ -148,34 +148,35 @@ jobs:
               f'<div><a href="{html.escape(href,quote=True)}">{html.escape(text)}</a></div>'
               for text,href in hist
           )
-          doc=f'''<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Instrução Normativa RFB nº 2.186/2024</title>
-<style>
-body{{font-family:Arial,Helvetica,sans-serif;max-width:1000px;margin:32px auto;padding:0 24px;color:#111;line-height:1.45}}
-header{{margin-bottom:28px}}
-h1{{font-size:1.25rem;text-align:center;text-transform:uppercase;margin:0 0 12px}}
-.publicacao,.ementa{{text-align:center;margin:10px 0}}
-.historico{{margin:18px 0;font-size:.95rem}}
-.segmento{{margin:10px 0}}
-.capitulo{{font-weight:normal;margin-top:24px}}
-a{{color:#0645ad}}
-</style>
-</head>
-<body>
-<header>
-<h1>INSTRUÇÃO NORMATIVA RFB Nº 2.186, DE 12 DE ABRIL DE 2024</h1>
-<div class="publicacao">{html.escape(pub)}</div>
-<div class="historico"><strong>Histórico de alterações</strong>{history_html}</div>
-</header>
-{''.join(out_parts)}
-<footer><p><em>* Este texto não substitui o publicado oficialmente.</em></p></footer>
-</body>
-</html>
-'''
+          doc=(
+              '<!doctype html>\\n'
+              '<html lang="pt-BR">\\n'
+              '<head>\\n'
+              '<meta charset="utf-8">\\n'
+              '<meta name="viewport" content="width=device-width,initial-scale=1">\\n'
+              '<title>Instrução Normativa RFB nº 2.186/2024</title>\\n'
+              '<style>\\n'
+              'body{font-family:Arial,Helvetica,sans-serif;max-width:1000px;margin:32px auto;padding:0 24px;color:#111;line-height:1.45}\\n'
+              'header{margin-bottom:28px}\\n'
+              'h1{font-size:1.25rem;text-align:center;text-transform:uppercase;margin:0 0 12px}\\n'
+              '.publicacao,.ementa{text-align:center;margin:10px 0}\\n'
+              '.historico{margin:18px 0;font-size:.95rem}\\n'
+              '.segmento{margin:10px 0}\\n'
+              '.capitulo{font-weight:normal;margin-top:24px}\\n'
+              'a{color:#0645ad}\\n'
+              '</style>\\n'
+              '</head>\\n'
+              '<body>\\n'
+              '<header>\\n'
+              '<h1>INSTRUÇÃO NORMATIVA RFB Nº 2.186, DE 12 DE ABRIL DE 2024</h1>\\n'
+              f'<div class="publicacao">{html.escape(pub)}</div>\\n'
+              f'<div class="historico"><strong>Histórico de alterações</strong>{history_html}</div>\\n'
+              '</header>\\n'
+              + ''.join(out_parts) + '\\n'
+              '<footer><p><em>* Este texto não substitui o publicado oficialmente.</em></p></footer>\\n'
+              '</body>\\n'
+              '</html>\\n'
+          )
           OUT.parent.mkdir(parents=True,exist_ok=True)
           OUT.write_text(doc,encoding='utf-8',newline='\n')
 
