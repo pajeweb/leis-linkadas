@@ -16,12 +16,7 @@ NORMAS = [
  ("Decreto 9.830/2019 — Regulamentação da LINDB","decretos/decreto-9830-2019.html","https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/decreto/d9830.htm",25),
  ("Lei 13.869/2019 — Abuso de Autoridade","leis/lei-13869-2019.html","https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/lei/l13869.htm",35),
  ("Lei 12.232/2010 — Serviços de Publicidade","leis/lei-12232-2010.html","https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2010/lei/l12232.htm",20),
- ("Lei GO 16.168/2007 — Lei Orgânica do TCE-GO","goias/lei-16168-2007.html","https://legisla.casacivil.go.gov.br/pesquisa_legislacao/86708/lei-16168",30),
- ("Lei GO 15.122/2005 — Plano de Carreiras do TCE-GO","goias/lei-15122-2005.html","https://legisla.casacivil.go.gov.br/pesquisa_legislacao/80023",10),
- ("Lei GO 20.756/2020 — Estatuto dos Servidores","goias/lei-20756-2020.html","https://legisla.casacivil.go.gov.br/pesquisa_legislacao/100979/lei-ordinaria-20756",20),
- ("Lei GO 13.800/2001 — Processo Administrativo","goias/lei-13800-2001.html","https://legisla.casacivil.go.gov.br/pesquisa_legislacao/81441/lei-13800",15),
- ("Lei GO 18.025/2013 — Acesso à Informação","goias/lei-18025-2013.html","https://legisla.casacivil.go.gov.br/pesquisa_legislacao/90142",10),
- ("Resolução TCE-GO 22/2008 — Regimento Interno","tce-go/resolucao-22-2008.html","https://gnoi.tce.go.gov.br/atoNormativo/Publicado?id=9544",30),
+
 ]
 session=requests.Session()
 session.headers.update({"User-Agent":"Mozilla/5.0 (compatible; NormativosImport/1.0)"})
@@ -91,7 +86,8 @@ if changes:
             section+='</ul>'
     section+='</section>'
     if 'id="normas-programa-tce-go"' in content:
-        content=content.replace('<section id="normas-programa-tce-go">','<section id="normas-programa-tce-go-antigo">',1)
+        raise RuntimeError("Seção do programa já existe; abortando para não duplicar índice")
+    if "</body>" not in content: raise RuntimeError("index.html inválido: falta </body>")
     content=content.replace('</body>',section+'</body>',1)
     idx.write_text(content,encoding="utf-8")
 print("TOTAL CRIADOS",len(changes),"DE",len(NORMAS))
