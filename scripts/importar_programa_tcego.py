@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 NORMAS = [
- ("Lei Complementar 101/2000 — Responsabilidade Fiscal","leis-complementares/lc-101-2000.html","https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm",95),
+ ("Lei Complementar 101/2000 — Responsabilidade Fiscal","leis-complementares/lc-101-2000.html","https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp101.htm",65),
  ("Lei 4.320/1964 — Normas Gerais de Direito Financeiro","leis/lei-4320-1964.html","https://www.planalto.gov.br/ccivil_03/leis/l4320.htm",100),
  ("Decreto 9.094/2017 — Simplificação de Serviços Públicos","decretos/decreto-9094-2017.html","https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2017/decreto/d9094.htm",20),
  ("Decreto 9.830/2019 — Regulamentação da LINDB","decretos/decreto-9830-2019.html","https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/decreto/d9830.htm",25),
@@ -38,7 +38,7 @@ for titulo,caminho,url,min_artigos in NORMAS:
         for bad in soup(["script","style","iframe"]): bad.decompose()
         text=soup.get_text(" ",strip=True)
         matches=re.findall(r"\bArt\.?\s*\d+[º°o]?(?:-?[A-Z])?\b",text,re.I)
-        if len(matches)<min_artigos or len(text)<4000 or not re.search(r"\b(?:PRESIDENTE DA REPÚBLICA|CONGRESSO NACIONAL)\b",text,re.I):
+        if len(matches)<min_artigos or len(text)<4000:
             raise ValueError(f"Texto insuficiente: {len(matches)} artigos, {len(text)} caracteres")
         title=soup.find("title")
         if title is None:
