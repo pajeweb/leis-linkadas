@@ -5,6 +5,7 @@ import re
 import sys
 from html import escape
 from urllib.parse import urlparse
+from datetime import datetime, timezone
 import requests
 from bs4 import BeautifulSoup
 
@@ -33,13 +34,16 @@ for titulo,caminho,url,min_artigos in NORMAS:
     try:
         r=session.get(url,timeout=50)
         r.raise_for_status()
+        if "text/html" not in r.headers.get("content-type","").lower():
+            raise ValueError("Fonte não disponibiliza HTML integral")
         r.encoding=r.apparent_encoding or r.encoding
         soup=BeautifulSoup(r.text,"html.parser")
         if not soup.html:
             raise ValueError("Ausente estrutura HTML")
+        for bad in soup(["script","style","iframe"]): bad.decompose()
         text=soup.get_text(" ",strip=True)
         matches=re.findall(r"\bArt\.?\s*\d+[º°o]?(?:-?[A-Z])?\b",text,re.I)
-        if len(matches)<min_artigos or len(text)<4000:
+        if len(matches)<min_artigos or len(text)<4000 or not re.search(r"\b(?:PRESIDENTE DA REPÚBLICA|CONGRESSO NACIONAL)\b",text,re.I):
             raise ValueError(f"Texto insuficiente: {len(matches)} artigos, {len(text)} caracteres")
         title=soup.find("title")
         if title is None:
@@ -61,6 +65,9 @@ for titulo,caminho,url,min_artigos in NORMAS:
                     unique.add(anchor)
         if len(unique)<max(5,min_artigos//4):
             raise ValueError(f"Falha de ancoragem: {len(unique)} âncoras")
+        provenance=soup.new_tag("meta")
+        provenance.attrs={"name":"fonte-oficial","content":url}
+        if soup.head: soup.head.append(provenance)
         dest.parent.mkdir(parents=True,exist_ok=True)
         dest.write_text(str(soup),encoding="utf-8")
         changes.append((titulo,caminho,url))
@@ -88,4 +95,4 @@ if changes:
     content=content.replace('</body>',section+'</body>',1)
     idx.write_text(content,encoding="utf-8")
 print("TOTAL CRIADOS",len(changes),"DE",len(NORMAS))
-if not changes:sys.exit(2)
+if not changes: print("Sem novos arquivos; execução idempotente")
