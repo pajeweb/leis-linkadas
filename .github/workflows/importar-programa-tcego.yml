@@ -24,7 +24,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html leis leis-complementares decretos goias tce-go
+          git add index.html leis leis-complementares decretos
           if ! git diff --cached --quiet; then
             git commit -m "Incluir normativos oficiais ancorados do Programa TCE-GO e atualizar index"
             git push
