@@ -1,0 +1,163 @@
+name: Importar CNNR RS oficial 10-09-2026
+on:
+  push:
+    paths:
+      - '.github/workflows/importar-cnnr-rs-2026.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar dependencias
+        run: python -m pip install --quiet pymupdf requests beautifulsoup4
+      - name: Baixar PDF oficial converter ancorar validar atualizar indice
+        shell: bash
+        run: |
+          python <<'PY'
+          import fitz,requests,re,html,collections,hashlib
+          from pathlib import Path
+          from urllib.parse import urlparse
+          from bs4 import BeautifulSoup
+
+          SOURCE='https://www.tjrs.jus.br/static/2026/09/Consolidacao-Normativa-Notarial-Registral-2025-TEXTO-COMPILADO-10-09-2026.pdf'
+          TARGET=Path('rs/consolidacao-normativa-notarial-registral-2026.html')
+          PREFIX='rs-cnnr-2020'
+          req=requests.get(SOURCE,timeout=180,headers={'User-Agent':'Mozilla/5.0'})
+          req.raise_for_status()
+          blob=req.content
+          if not blob.startswith(b'%PDF-'):
+              raise RuntimeError('Fonte oficial nao retornou PDF.')
+          pdf=fitz.open(stream=blob,filetype='pdf')
+          if len(pdf)!=374:
+              raise RuntimeError('PDF diferente do fornecido: paginas='+str(len(pdf)))
+          cover=pdf[1].get_text()
+          if '43/26' not in cover or 'COMPILADO' not in cover:
+              raise RuntimeError('A capa nao identifica a compilacao ate Provimento 43/26.')
+          article_rx=re.compile(r'^Art\\.?\\s*(\\d{1,4})(?:[º°])?(?:[-–]([A-Z]))?(?=\\s|[.\u2013\u2014-]|$)',re.I)
+          par_rx=re.compile(r'^§\\s*(\\d{1,2})\\s*[º°]?')
+          inc_rx=re.compile(r'^([IVXLCDM]{1,8})\\s*[-–—]\\s+',re.I)
+          ali_rx=re.compile(r'^([a-z])\\)\\s+',re.I)
+
+          style='''body{font-family:Arial,sans-serif;background:#eee;color:#111;margin:0}header{background:#fff;padding:14px 24px;position:sticky;top:0;z-index:20;box-shadow:0 1px 4px #aaa}header h1{font-size:1.05rem;margin:0 0 6px}header p{margin:0;font-size:.83rem}.pages{padding:16px}.page{position:relative;margin:16px auto;background:#fff;box-shadow:0 2px 5px #aaa;overflow:hidden}.s{position:absolute;white-space:pre;line-height:1;transform-origin:left top}.anchor{position:absolute;width:0;height:0;scroll-margin-top:100px}.pdf-link{position:absolute;z-index:3;background:transparent;cursor:pointer}.note{font-size:.8rem;margin-top:4px}'''
+
+          pieces=['<!doctype html>','<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">','<title>CNNR RS — texto compilado de 10/09/2026</title>','<style>'+style+'</style></head><body>',
+          '<header><h1>CONSOLIDAÇÃO NORMATIVA NOTARIAL E REGISTRAL — RS</h1><p>Provimento nº 01/2020-CGJ/RS · Texto compilado em 10/09/2026, atualizado até o Provimento nº 43/2026-CGJ/RS</p><p class="note">Fonte oficial: <a href="'+html.escape(SOURCE,quote=True)+'">TJRS — PDF compilado</a>. O texto original do PDF é a referência para conferência.</p></header><main class="pages">']
+          ids=set()
+          stats=collections.Counter()
+          current_art=None;current_par=None;current_inc=None
+          pdf_chars=0; rendered_chars=0
+          SCALE=1.25
+          for pno,page in enumerate(pdf):
+              doc=page.get_text('dict')
+              lines=[]
+              for block in doc['blocks']:
+                  if block.get('type')!=0:continue
+                  for line in block.get('lines',[]):
+                      spans=[s for s in line.get('spans',[]) if s.get('text')]
+                      if not spans:continue
+                      txt=''.join(s['text'] for s in spans).strip()
+                      if not txt:continue
+                      lines.append((min(s['bbox'][1] for s in spans),min(s['bbox'][0] for s in spans),txt,spans))
+              lines.sort(key=lambda x:(round(x[0],1),x[1]))
+              pdf_chars+=len(page.get_text())
+              W=round(page.rect.width*SCALE,1);H=round(page.rect.height*SCALE,1)
+              pieces.append('<section class="page" id="pagina-'+str(pno+1)+'" style="width:'+str(W)+'px;height:'+str(H)+'px" data-page="'+str(pno+1)+'">')
+              for y,x,txt,spans in lines:
+                  anch=None
+                  if pno>=15:
+                      m=article_rx.match(txt)
+                      if m:
+                          number=m.group(1);suffix=('-'+m.group(2).lower()) if m.group(2) else ''
+                          key=PREFIX+'-art-'+number+suffix
+                          if key not in ids:
+                              current_art=number+suffix;current_par=None;current_inc=None
+                              anch=key
+                      else:
+                          m=par_rx.match(txt)
+                          if m and current_art:
+                              par=m.group(1);current_par=par;current_inc=None
+                              key=PREFIX+'-art-'+current_art+'-par-'+par
+                              if key not in ids:anch=key
+                          elif txt.lower().startswith('parágrafo único') and current_art:
+                              current_par='unico';current_inc=None
+                              key=PREFIX+'-art-'+current_art+'-par-unico'
+                              if key not in ids:anch=key
+                          else:
+                              m=inc_rx.match(txt)
+                              if m and current_art:
+                                  current_inc=m.group(1).lower()
+                                  key=PREFIX+'-art-'+current_art+('-par-'+current_par if current_par else '')+'-inc-'+current_inc
+                                  if key not in ids:anch=key
+                              else:
+                                  m=ali_rx.match(txt)
+                                  if m and current_art and current_inc:
+                                      key=PREFIX+'-art-'+current_art+('-par-'+current_par if current_par else '')+'-inc-'+current_inc+'-ali-'+m.group(1).lower()
+                                      if key not in ids:anch=key
+                  if anch:
+                      ids.add(anch);stats['ancoras']+=1
+                      pieces.append('<span class="anchor" id="'+anch+'" style="left:'+str(round(x*SCALE,1))+'px;top:'+str(round(y*SCALE,1))+'px"></span>')
+                  for sp in spans:
+                      t=sp['text']
+                      rendered_chars+=len(t)
+                      x0,y0,x1,y1=sp['bbox']
+                      size=round(sp['size']*SCALE,2)
+                      color=sp.get('color',0)
+                      rgb='#'+format(color & 0xffffff,'06x')
+                      font='font-weight:700;' if 'Bold' in sp.get('font','') else ''
+                      italic='font-style:italic;' if 'Italic' in sp.get('font','') or 'Oblique' in sp.get('font','') else ''
+                      pieces.append('<span class="s" style="left:'+str(round(x0*SCALE,1))+'px;top:'+str(round(y0*SCALE,1))+'px;font-size:'+str(size)+'px;color:'+rgb+';'+font+italic+'">'+html.escape(t)+'</span>')
+              for link in page.get_links():
+                  rect=fitz.Rect(link.get('from'))
+                  if rect.is_empty:continue
+                  href=None
+                  if link.get('kind')==fitz.LINK_URI and link.get('uri'):
+                      href=link['uri']
+                  elif link.get('kind')==fitz.LINK_GOTO and isinstance(link.get('page'),int) and link['page']>=0:
+                      href='#pagina-'+str(link['page']+1)
+                  if not href:continue
+                  stats['links_pdf']+=1
+                  r=rect
+                  pieces.append('<a class="pdf-link" href="'+html.escape(href,quote=True)+'" title="Link existente no PDF oficial" style="left:'+str(round(r.x0*SCALE,1))+'px;top:'+str(round(r.y0*SCALE,1))+'px;width:'+str(round(r.width*SCALE,1))+'px;height:'+str(round(r.height*SCALE,1))+'px"></a>')
+              pieces.append('</section>')
+          pieces.append('</main></body></html>')
+          output='\n'.join(pieces)
+          if rendered_chars<350000:
+              raise RuntimeError('Texto extraido insuficiente: '+str(rendered_chars))
+          articles=[x for x in ids if re.fullmatch(PREFIX+r'-art-\\d+',x)]
+          if len(articles)<500:raise RuntimeError('Poucos artigos ancorados: '+str(len(articles)))
+          if len(ids)!=stats['ancoras']:raise RuntimeError('IDs duplicados')
+          if stats['links_pdf']<10:raise RuntimeError('Poucos links de PDF preservados: '+str(stats['links_pdf']))
+          TARGET.parent.mkdir(exist_ok=True,parents=True)
+          TARGET.write_text(output,encoding='utf-8')
+          if output.count('id="pagina-')!=374:raise RuntimeError('Quantidade de paginas divergente')
+          idx=Path('index.html')
+          old=idx.read_text(encoding='utf-8')
+          link=str(TARGET)
+          entry='<section><h2>Rio Grande do Sul — TJRS</h2><h3>Consolidação Normativa Notarial e Registral</h3><ul><li><a href="'+link+'">CNNR/RS — Provimento 01/2020-CGJ/RS (texto compilado de 10/09/2026)</a><small>Fonte oficial TJRS; atualizado até o Provimento 43/2026-CGJ/RS</small></li></ul></section>'
+          if link not in old:
+              marker='<section><h2>Constituição</h2>'
+              if marker not in old:raise RuntimeError('Marcador index.html ausente')
+              idx.write_text(old.replace(marker,entry+marker,1),encoding='utf-8')
+          assert link in idx.read_text(encoding='utf-8')
+          print('PDF_PAGES',len(pdf),'PDF_BYTES',len(blob),'PDF_SHA256',hashlib.sha256(blob).hexdigest())
+          print('PDF_EXTRACTED_CHARS',pdf_chars,'RENDERED_CHARS',rendered_chars)
+          print('ARTICLES',len(articles),'ANCHORS',len(ids),'PDF_LINKS',stats['links_pdf'])
+          print('OUTPUT_HTML_BYTES',TARGET.stat().st_size)
+          print('EXAMPLE',sorted(articles)[:10])
+          PY
+      - name: Publicar arquivos validados
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add rs/consolidacao-normativa-notarial-registral-2026.html index.html
+          git commit -m 'Adicionar CNNR RS compilada 10-09-2026 com ancoras e indice'
+          git push
