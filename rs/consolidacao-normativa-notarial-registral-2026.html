@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CNNR/RS — Consolidação Normativa Notarial e Registral (10/09/2026)</title>
+<style>
+:root{font-family:Georgia,"Times New Roman",serif;color:#182333;background:#f6f7fa}
+body{margin:0}header{background:white;border-bottom:1px solid #dbe1e7;padding:20px clamp(12px,5vw,70px);position:sticky;top:0;z-index:10}
+h1{font:600 1.1rem/1.4 Arial,sans-serif;margin:0 0 8px}header p{font:0.84rem/1.5 Arial,sans-serif;margin:5px 0}
+header nav{display:flex;gap:14px;flex-wrap:wrap}a{color:#075395}main{max-width:960px;margin:20px auto;background:#fff;padding:28px clamp(14px,4vw,48px);box-shadow:0 1px 5px #d2d6df}
+.parte pre{font:15px/1.48 Georgia,"Times New Roman",serif;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+.parte [id],.parte .anchor{scroll-margin-top:148px}
+#status{font:0.85rem Arial,sans-serif;color:#555}
+@media print{header{position:static}main{box-shadow:none}}
+</style></head>
+<body><header><h1>Consolidação Normativa Notarial e Registral — Rio Grande do Sul</h1>
+<p>Instituída pelo Provimento nº 01/2020-CGJ/RS. Texto oficial compilado de 10/09/2026, atualizado até o Provimento nº 43/2026-CGJ/RS.</p>
+<nav><a href="https://www.tjrs.jus.br/static/2026/09/Consolidacao-Normativa-Notarial-Registral-2025-TEXTO-COMPILADO-10-09-2026.pdf">Conferir PDF oficial do TJRS</a><a href="../index.html">Voltar ao índice</a><a href="#rs-cnnr-art-1">Art. 1º</a><a href="#rs-cnnr-art-594">Art. 594</a></nav>
+<p id="status" role="status">Carregando texto integral…</p></header>
+<main id="texto" aria-label="Texto integral da CNNR RS"></main>
+<script>
+(async function(){
+ const target=document.getElementById("texto");
+ const status=document.getElementById("status");
+ const wanted=decodeURIComponent(location.hash.slice(1));let located=false;
+ for(let n=1;n<=20;n++){
+  try{
+   const name="cnnr-rs-2026/parte-"+String(n).padStart(2,"0")+".html";
+   const res=await fetch(name,{cache:"force-cache"});
+   if(!res.ok)throw Error("HTTP "+res.status+" em "+name);
+   const html=await res.text();
+   const temp=document.createElement("div");temp.innerHTML=html;
+   while(temp.firstChild)target.appendChild(temp.firstChild);
+   status.textContent="Carregando texto integral: "+Math.round(n/20*100)+"%";
+   if(wanted&&!located){
+    const node=document.getElementById(wanted);
+    if(node){node.scrollIntoView({block:"start"});located=true}
+   }
+  }catch(e){status.textContent="Falha no carregamento da parte "+n+": "+e.message;return}
+ }
+ status.textContent="Texto integral carregado — 374 páginas da compilação oficial. A fonte PDF prevalece em caso de divergência de conversão.";
+ if(wanted){const node=document.getElementById(wanted);if(node)node.scrollIntoView({block:"start"})}
+})();
+window.addEventListener("hashchange",()=>{const node=document.getElementById(decodeURIComponent(location.hash.slice(1)));if(node)node.scrollIntoView({block:"start"})});
+</script></body></html>
