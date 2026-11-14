@@ -1,4 +1,4 @@
-name: Incluir Lei de Execução Fiscal — versão 2
+name: Incluir Lei de Execução Fiscal — versão 4
 on:
   push:
     paths:
@@ -37,8 +37,13 @@ jobs:
               if re.search(r'Art\.\s*1º',txt) and re.search(r'Art\.\s*42',txt):
                   candidates.append(node)
               node=node.parent
-          if not candidates: raise RuntimeError('Bloco integral dos arts. 1º a 42 não localizado.')
-          block=candidates[0]
+          if not candidates:
+              body_text=soup.body.get_text(' ',strip=True) if soup.body else soup.get_text(' ',strip=True)
+              if not re.search(r'Art\\.\\s*42',body_text):
+                  raise RuntimeError('Texto integral não contém o art. 42. Título: '+str(soup.title))
+              block=soup.body
+          else:
+              block=candidates[0]
           for bad in block.select('script,style,nav,header,footer'):
               bad.decompose()
 
