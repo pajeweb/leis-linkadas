@@ -26,9 +26,11 @@ jobs:
           r=requests.get(source,timeout=90,headers={'User-Agent':'Mozilla/5.0'})
           r.raise_for_status()
           soup=BeautifulSoup(r.content,'html.parser')
-          title=soup.find(string=re.compile(r'LEI Nº 6\.830, DE 22 DE SETEMBRO DE 1980'))
-          if not title: raise RuntimeError('Epígrafe não encontrada na fonte oficial.')
-          node=title.parent
+          title=soup.find(string=re.compile(r'6\\.830'))
+          if not title:
+              title=soup.find(lambda tag: tag.name in ('h1','h2','h3','p','div') and '6.830' in tag.get_text(' ',strip=True))
+          if not title: raise RuntimeError('Identificação da Lei 6.830/1980 não encontrada. '+str(soup.title))
+          node=title.parent if hasattr(title,'parent') else title
           candidates=[]
           while node and node.name not in ('body','html'):
               txt=node.get_text(' ',strip=True)
