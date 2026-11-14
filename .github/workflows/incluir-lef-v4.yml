@@ -1,0 +1,128 @@
+name: Incluir Lei de Execução Fiscal — versão 4
+on:
+  push:
+    paths:
+      - '.github/workflows/incluir-lef-v4.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  incluir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --quiet requests beautifulsoup4
+      - name: Obter texto atualizado da Câmara e gerar HTML ancorado
+        run: |
+          python <<'PY'
+          import requests,re,html
+          from bs4 import BeautifulSoup
+          from pathlib import Path
+
+          source='https://www2.camara.leg.br/legin/fed/lei/1980-1987/lei-6830-22-setembro-1980-366127-normaatualizada-pl.html'
+          r=requests.get(source,timeout=90,headers={'User-Agent':'Mozilla/5.0'})
+          r.raise_for_status()
+          soup=BeautifulSoup(r.content,'html.parser')
+          title=soup.find(string=re.compile(r'6\\.830'))
+          if not title:
+              title=soup.find(lambda tag: tag.name in ('h1','h2','h3','p','div') and '6.830' in tag.get_text(' ',strip=True))
+          if not title: raise RuntimeError('Identificação da Lei 6.830/1980 não encontrada. '+str(soup.title))
+          node=title.parent if hasattr(title,'parent') else title
+          candidates=[]
+          while node and node.name not in ('body','html'):
+              txt=node.get_text(' ',strip=True)
+              if re.search(r'Art\.\s*1º',txt) and re.search(r'Art\.\s*42',txt):
+                  candidates.append(node)
+              node=node.parent
+          if not candidates:
+              body_text=soup.body.get_text(' ',strip=True) if soup.body else soup.get_text(' ',strip=True)
+              if not re.search(r'Art\\.\\s*42',body_text):
+                  raise RuntimeError('Texto integral não contém o art. 42. Título: '+str(soup.title))
+              block=soup.body
+          else:
+              block=candidates[0]
+          for bad in block.select('script,style,nav,header,footer'):
+              bad.decompose()
+
+          prefix='lef-6830-1980'
+          ids=set()
+          art=None;par=None;inc=None
+          art_rx=re.compile(r'^Art\.\s*(\d{1,2})\s*[º°]?')
+          par_rx=re.compile(r'^§\s*(\d{1,2})\s*[º°]?')
+          inc_rx=re.compile(r'^([IVXLCDM]{1,8})\s*[-–—]')
+          ali_rx=re.compile(r'^([a-z])\)')
+          for el in block.find_all(['p','div','li']):
+              txt=' '.join(el.stripped_strings)
+              if not txt: continue
+              aid=None
+              m=art_rx.match(txt)
+              if m:
+                  art=m.group(1);par=None;inc=None;aid=f'{prefix}-art-{art}'
+              elif art:
+                  m=par_rx.match(txt)
+                  if m:
+                      par=m.group(1);inc=None;aid=f'{prefix}-art-{art}-par-{par}'
+                  elif re.match(r'^Parágrafo único\b',txt,re.I):
+                      par='unico';inc=None;aid=f'{prefix}-art-{art}-par-unico'
+                  else:
+                      m=inc_rx.match(txt)
+                      if m:
+                          inc=m.group(1).lower()
+                          aid=f'{prefix}-art-{art}'+(f'-par-{par}' if par else '')+f'-inc-{inc}'
+                      else:
+                          m=ali_rx.match(txt)
+                          if m and inc:
+                              aid=f'{prefix}-art-{art}'+(f'-par-{par}' if par else '')+f'-inc-{inc}-ali-{m.group(1)}'
+              if aid and aid not in ids:
+                  ids.add(aid)
+                  anchor=soup.new_tag('span',id=aid)
+                  el.insert(0,anchor)
+          if f'{prefix}-art-1' not in ids or f'{prefix}-art-42' not in ids:
+              raise RuntimeError('Âncoras dos arts. 1º e 42 não foram identificadas.')
+          if len([x for x in ids if re.fullmatch(prefix+r'-art-\d+',x)])<35:
+              raise RuntimeError('Quantidade de artigos ancorados incompatível: '+str(len(ids)))
+          for a in block.select('a[href]'):
+              href=a.get('href','')
+              if href.startswith('/'): a['href']='https://www2.camara.leg.br'+href
+          out=Path('leis/lei-6830-1980.html')
+          out.parent.mkdir(exist_ok=True)
+          document='''<!doctype html>
+          <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>Lei nº 6.830/1980 — Lei de Execução Fiscal</title>
+          <style>body{font-family:Arial,Helvetica,sans-serif;max-width:1050px;margin:30px auto;padding:0 22px;line-height:1.5;color:#172033}h1{font-size:1.25rem}a{color:#0645ad}[id]{scroll-margin-top:18px}p{margin:.65em 0}</style></head><body>
+          <h1>LEI Nº 6.830, DE 22 DE SETEMBRO DE 1980</h1>
+          <p><a href="'''+source+'''">Fonte oficial: Câmara dos Deputados — Texto atualizado (HTML)</a></p>
+          '''+str(block)+'''
+          <p><em>* Este texto não substitui o publicado oficialmente.</em></p></body></html>'''
+          out.write_text(document,encoding='utf-8')
+          final=BeautifulSoup(document,'html.parser')
+          final_ids=[e.get('id') for e in final.select('[id]')]
+          if len(final_ids)!=len(set(final_ids)): raise RuntimeError('IDs duplicados.')
+          if len(final.select('a[href]'))<1: raise RuntimeError('Links oficiais não preservados.')
+          print('ARTIGOS',len([x for x in ids if re.fullmatch(prefix+r'-art-\d+',x)]))
+          print('ANCHORS',len(ids))
+          print('OFFICIAL_LINKS',len(final.select('a[href]')))
+          print('OUTPUT_BYTES',out.stat().st_size)
+
+          index=Path('index.html')
+          data=index.read_text(encoding='utf-8')
+          href='leis/lei-6830-1980.html'
+          if href not in data:
+              entry='<li><a href="'+href+'">Lei 6.830/1980 — Lei de Execução Fiscal</a><small>texto-atualizado-oficial-camara-dos-deputados</small></li>'
+              marker='<li><a href="leis/lei-8009-1990.html">'
+              if marker not in data: raise RuntimeError('Posição numérica para inclusão no índice não localizada.')
+              data=data.replace(marker,entry+marker,1)
+              index.write_text(data,encoding='utf-8')
+          if href not in index.read_text(encoding='utf-8'): raise RuntimeError('Índice não atualizado.')
+          PY
+      - name: Validar e publicar
+        run: |
+          git add leis/lei-6830-1980.html index.html
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Incluir Lei de Execução Fiscal 6830/1980 com âncoras'
+          git push
